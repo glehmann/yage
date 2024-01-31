@@ -10,6 +10,18 @@ pub enum AppError {
         path: PathBuf,
         source: std::io::Error,
     },
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
+    #[error(transparent)]
+    YamlError(#[from] serde_yaml::Error),
+    #[error("can't parse recipient {recipient}: {message}")]
+    RecipientParseError { recipient: String, message: String },
+    #[error(transparent)]
+    EncryptError(#[from] age::EncryptError),
+    #[error(transparent)]
+    Utf8Error(#[from] std::string::FromUtf8Error),
+    #[error("no recipients provided")]
+    NoRecipientsError,
 }
 
 /// Alias for a `Result` with the error type `AppError`.

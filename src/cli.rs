@@ -51,12 +51,25 @@ pub struct EncryptArgs {
     pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
-    #[clap(short = 'R', long, name = "PATH", env = "YAGE_RECIPIENTS_FILE")]
-    pub recipients_path: Vec<PathBuf>,
+    #[clap(
+        short = 'R',
+        long = "recipient-path",
+        name = "PATH",
+        env = "YAGE_RECIPIENTS_FILE"
+    )]
+    pub recipients_paths: Vec<PathBuf>,
 
     /// Encrypt in place
     #[clap(short, long)]
     pub inplace: bool,
+
+    /// The output path to the encrypted YAML file
+    #[clap(short, long, default_value = "-")]
+    pub output: PathBuf,
+
+    /// The YAML file to encrypt
+    #[arg()]
+    pub file: PathBuf,
 }
 
 /// Decrypted YAML file
