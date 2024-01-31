@@ -27,7 +27,8 @@ pub enum Commands {
 #[derive(Args, Debug)]
 pub struct KeygenArgs {
     /// The output path to the private key file
-    output: Option<PathBuf>,
+    #[clap(short, long, default_value = "-")]
+    pub output: PathBuf,
 }
 
 /// Edit an encrypted YAML file
@@ -35,11 +36,11 @@ pub struct KeygenArgs {
 pub struct EditArgs {
     /// The private key
     #[clap(short, long, env = "YAGE_KEY")]
-    key: Option<String>,
+    pub key: Option<String>,
 
     /// The path to the private key file
     #[clap(short = 'K', long, name = "PATH", env = "YAGE_KEY_FILE")]
-    key_file: Option<PathBuf>,
+    pub key_file: Option<PathBuf>,
 }
 
 /// Encrypted YAML file
@@ -47,15 +48,15 @@ pub struct EditArgs {
 pub struct EncryptArgs {
     /// Encrypt to the specified recipients
     #[clap(short, long = "recipient", env = "YAGE_RECIPIENTS")]
-    recipients: Vec<String>,
+    pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
     #[clap(short = 'R', long, name = "PATH", env = "YAGE_RECIPIENTS_FILE")]
-    recipients_path: Vec<PathBuf>,
+    pub recipients_path: Vec<PathBuf>,
 
     /// Encrypt in place
     #[clap(short, long)]
-    inplace: bool,
+    pub inplace: bool,
 }
 
 /// Decrypted YAML file
@@ -63,15 +64,15 @@ pub struct EncryptArgs {
 pub struct DecryptArgs {
     /// Decrypt with the specified key
     #[clap(short, long, env = "YAGE_KEY")]
-    key: Option<String>,
+    pub key: Option<String>,
 
     /// Decrypt with the key at PATH
     #[clap(short = 'K', long, name = "PATH", env = "YAGE_KEY_FILE")]
-    key_file: Option<PathBuf>,
+    pub key_file: Option<PathBuf>,
 
     /// Decrypt in place
     #[clap(short, long)]
-    inplace: bool,
+    pub inplace: bool,
 }
 
 /// Execute a command with decrypted values inserted into the environment
@@ -79,15 +80,15 @@ pub struct DecryptArgs {
 pub struct EnvArgs {
     /// Decrypt with the specified key
     #[clap(short, long, env = "YAGE_KEY")]
-    key: Option<String>,
+    pub key: Option<String>,
 
     /// Decrypt with the key at PATH
     #[clap(short = 'K', long, name = "PATH", env = "YAGE_KEY_FILE")]
-    key_file: Option<PathBuf>,
+    pub key_file: Option<PathBuf>,
 
     /// Start with an empty environment
     #[clap(short, long, default_value_t = false)]
-    ignore_environment: bool,
+    pub ignore_environment: bool,
 
     /// Command to run
     #[arg(name = "COMMAND")]

@@ -11,6 +11,7 @@ mod encrypt;
 mod env;
 mod error;
 mod keygen;
+mod util;
 
 fn run() -> error::Result<()> {
     let cli = cli::Cli::parse();
