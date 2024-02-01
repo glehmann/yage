@@ -8,7 +8,7 @@ use base64::prelude::*;
 
 use crate::cli::EncryptArgs;
 use crate::error::{AppError, IOResultExt, Result};
-use crate::util::{stdin_or_file, stdout_or_file};
+use crate::util::{is_yage_encoded, stdin_or_file, stdout_or_file};
 
 type Recipients = Vec<Box<dyn age::Recipient + Send + 'static>>;
 
@@ -73,8 +73,13 @@ fn encrypt_yaml(
             }
             Ok(serde_yaml::Value::Sequence(output))
         }
-        serde_yaml::Value::String(_) => {
-            let output = encrypt_value(value, recipients)?;
+        serde_yaml::Value::String(s) => {
+            let output = if is_yage_encoded(s) {
+                // keep the already encrypted value
+                s.to_owned()
+            } else {
+                encrypt_value(value, recipients)?
+            };
             Ok(serde_yaml::Value::String(output))
         }
         serde_yaml::Value::Number(_) => {

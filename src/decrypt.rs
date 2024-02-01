@@ -7,7 +7,7 @@ use substring::Substring;
 
 use crate::cli::DecryptArgs;
 use crate::error::{AppError, IOResultExt, Result};
-use crate::util::{stdin_or_file, stdout_or_file};
+use crate::util::{is_yage_encoded, stdin_or_file, stdout_or_file};
 
 pub fn decrypt(args: &DecryptArgs) -> Result<()> {
     let mut identities: Vec<x25519::Identity> = Vec::new();
@@ -85,8 +85,4 @@ fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<serde_yaml:
     } else {
         Ok(serde_yaml::Value::String(s.to_owned()))
     }
-}
-
-fn is_yage_encoded(s: &str) -> bool {
-    s.starts_with("yage[") && s.ends_with("]")
 }

@@ -19,3 +19,7 @@ pub fn stdin_or_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
         BufReader::new(Box::new(File::open(path).path_ctx(path)?))
     })
 }
+
+pub fn is_yage_encoded(s: &str) -> bool {
+    s.starts_with("yage[") && s.ends_with("]")
+}
