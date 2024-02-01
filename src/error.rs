@@ -30,6 +30,10 @@ pub enum AppError {
     NoRecipientsError,
     #[error("passphrase not supported")]
     PassphraseUnsupportedError,
+    #[error("yaml value is not a map")]
+    NotAMapError,
+    #[error("yaml value is not a string or a number")]
+    NotAStringOrNumberError,
 }
 
 /// Alias for a `Result` with the error type `AppError`.

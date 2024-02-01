@@ -101,17 +101,25 @@ pub struct DecryptArgs {
 pub struct EnvArgs {
     /// Decrypt with the specified key
     #[clap(short, long, env = "YAGE_KEY")]
-    pub key: Option<String>,
+    pub keys: Vec<String>,
 
     /// Decrypt with the key at PATH
     #[clap(short = 'K', long, name = "PATH", env = "YAGE_KEY_FILE")]
-    pub key_file: Option<PathBuf>,
+    pub key_files: Vec<PathBuf>,
 
     /// Start with an empty environment
     #[clap(short, long, default_value_t = false)]
     pub ignore_environment: bool,
 
+    /// The YAML file to decrypt
+    #[arg()]
+    pub file: PathBuf,
+
     /// Command to run
     #[arg(name = "COMMAND")]
+    pub command: String,
+
+    /// Command arguments
+    #[arg()]
     pub args: Vec<String>,
 }
