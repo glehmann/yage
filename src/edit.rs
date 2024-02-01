@@ -1,6 +1,9 @@
 use std::fs::File;
 
 use tempfile::tempdir;
+use treediff::tools::{ChangeType, Recorder};
+use treediff::value::Key;
+use treediff::Mutable;
 
 use crate::cli::EditArgs;
 use crate::error::{AppError, IOResultExt, Result};
@@ -42,11 +45,44 @@ pub fn edit(args: &EditArgs) -> Result<()> {
     }
     // load the data edited by the user
     let edited_data: serde_yaml::Value = serde_yaml::from_reader(File::open(&temp_file)?)?;
+
+    // find what has not changed, and keep the encrypted data unchanged. That data is encrypted
+    // with a nonce that make it appear different every time it is encrypted, so we avoid
+    // encrypting it again. This way the data that has not changed isn't changed in its
+    // encrypted form.
+    let mut d = Recorder::default();
+    treediff::diff(&previous_data, &edited_data, &mut d);
+    let mut to_encrypt_data = edited_data.clone();
+    for d in d.calls {
+        if let ChangeType::Unchanged(keys, _) = d {
+            debug!("keeping unchanged key: {:?}", keys);
+            let v = yaml_get(&input_data, &keys)?;
+            to_encrypt_data.set(&keys, v);
+        }
+    }
+
     // encrypt the data with the recipients
-    let output_data = encrypt_yaml(&edited_data, &recipients)?;
+    let output_data = encrypt_yaml(&to_encrypt_data, &recipients)?;
     // save the encrypted data in the original file
     let output = File::create(&args.file).path_ctx(&args.file)?;
     serde_yaml::to_writer(output, &output_data)?;
 
     Ok(())
+}
+
+fn yaml_get<'a>(data: &'a serde_yaml::Value, keys: &[Key]) -> Result<&'a serde_yaml::Value> {
+    if keys.is_empty() {
+        return Ok(data);
+    }
+    let key = &keys[0];
+    match key {
+        Key::String(k) => {
+            let value = data.get(k).ok_or(AppError::KeyNotFoundError)?;
+            yaml_get(value, &keys[1..])
+        }
+        Key::Index(i) => {
+            let value = data.get(i).ok_or(AppError::KeyNotFoundError)?;
+            yaml_get(value, &keys[1..])
+        }
+    }
 }

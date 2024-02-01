@@ -38,6 +38,8 @@ pub enum AppError {
     InvalidFileNameError { path: PathBuf },
     #[error("editor exited with an error status")]
     EditorError,
+    #[error("key not found")]
+    KeyNotFoundError,
 }
 
 /// Alias for a `Result` with the error type `AppError`.
