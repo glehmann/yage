@@ -11,6 +11,7 @@ mod encrypt;
 mod env;
 mod error;
 mod keygen;
+mod pubkey;
 mod util;
 
 fn run() -> error::Result<()> {
@@ -21,6 +22,7 @@ fn run() -> error::Result<()> {
 
     match cli.command.unwrap() {
         Commands::Keygen(ref args) => keygen::keygen(args)?,
+        Commands::Pubkey(ref args) => pubkey::pubkey(args)?,
         Commands::Edit(ref args) => edit::edit(args)?,
         Commands::Encrypt(ref args) => encrypt::encrypt(args)?,
         Commands::Decrypt(ref args) => decrypt::decrypt(args)?,

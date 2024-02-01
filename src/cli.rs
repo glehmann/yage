@@ -17,6 +17,7 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     Keygen(KeygenArgs),
+    Pubkey(PubkeyArgs),
     Edit(EditArgs),
     Encrypt(EncryptArgs),
     Decrypt(DecryptArgs),
@@ -26,6 +27,22 @@ pub enum Commands {
 /// Generate a new key
 #[derive(Args, Debug)]
 pub struct KeygenArgs {
+    /// The output path to the public key file
+    #[clap(short, long, default_value = "-")]
+    pub output: PathBuf,
+}
+
+/// Convert private keys to their public key
+#[derive(Args, Debug)]
+pub struct PubkeyArgs {
+    /// Decrypt with the specified key
+    #[clap(env = "YAGE_KEY")]
+    pub keys: Vec<String>,
+
+    /// Decrypt with the key at PATH
+    #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
+    pub key_files: Vec<PathBuf>,
+
     /// The output path to the private key file
     #[clap(short, long, default_value = "-")]
     pub output: PathBuf,
