@@ -6,6 +6,7 @@ use std::str::FromStr;
 
 use age::x25519;
 use base64::prelude::*;
+use serde_yaml as sy;
 use substring::Substring;
 
 use crate::error::{AppError, IOResultExt, Result};
@@ -30,29 +31,26 @@ pub fn is_yage_encoded(s: &str) -> bool {
     s.starts_with("yage[") && s.ends_with("]")
 }
 
-pub fn decrypt_yaml(
-    value: &serde_yaml::Value,
-    identities: &[x25519::Identity],
-) -> Result<serde_yaml::Value> {
+pub fn decrypt_yaml(value: &sy::Value, identities: &[x25519::Identity]) -> Result<sy::Value> {
     match value {
-        serde_yaml::Value::Mapping(mapping) => {
-            let mut output = serde_yaml::Mapping::new();
+        sy::Value::Mapping(mapping) => {
+            let mut output = sy::Mapping::new();
             for (key, value) in mapping {
                 let key = key.clone();
                 let value = decrypt_yaml(value, identities)?;
                 output.insert(key, value);
             }
-            Ok(serde_yaml::Value::Mapping(output))
+            Ok(sy::Value::Mapping(output))
         }
-        serde_yaml::Value::Sequence(sequence) => {
+        sy::Value::Sequence(sequence) => {
             let mut output = Vec::new();
             for value in sequence {
                 let value = decrypt_yaml(value, identities)?;
                 output.push(value);
             }
-            Ok(serde_yaml::Value::Sequence(output))
+            Ok(sy::Value::Sequence(output))
         }
-        serde_yaml::Value::String(encrypted) => {
+        sy::Value::String(encrypted) => {
             let decrypted = decrypt_value(encrypted, identities)?;
             Ok(decrypted)
         }
@@ -60,7 +58,7 @@ pub fn decrypt_yaml(
     }
 }
 
-pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<serde_yaml::Value> {
+pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Value> {
     if is_yage_encoded(s) {
         // remove the yage[…] prefix and suffix
         let encoded = s.substring(5, s.len() - 1);
@@ -72,10 +70,10 @@ pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<serde_y
         let mut decrypted = vec![];
         let mut reader = decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
         reader.read_to_end(&mut decrypted)?;
-        let value: serde_yaml::Value = serde_yaml::from_slice(&decrypted)?;
+        let value: sy::Value = sy::from_slice(&decrypted)?;
         Ok(value)
     } else {
-        Ok(serde_yaml::Value::String(s.to_owned()))
+        Ok(sy::Value::String(s.to_owned()))
     }
 }
 
@@ -99,51 +97,45 @@ pub fn load_identities(keys: &[String], key_files: &[PathBuf]) -> Result<Vec<x25
     Ok(identities)
 }
 
-pub fn encrypt_yaml(
-    value: &serde_yaml::Value,
-    recipients: &[x25519::Recipient],
-) -> Result<serde_yaml::Value> {
+pub fn encrypt_yaml(value: &sy::Value, recipients: &[x25519::Recipient]) -> Result<sy::Value> {
     match value {
-        serde_yaml::Value::Mapping(mapping) => {
-            let mut output = serde_yaml::Mapping::new();
+        sy::Value::Mapping(mapping) => {
+            let mut output = sy::Mapping::new();
             for (key, value) in mapping {
                 let key = key.clone();
                 let value = encrypt_yaml(value, recipients)?;
                 output.insert(key, value);
             }
-            Ok(serde_yaml::Value::Mapping(output))
+            Ok(sy::Value::Mapping(output))
         }
-        serde_yaml::Value::Sequence(sequence) => {
+        sy::Value::Sequence(sequence) => {
             let mut output = Vec::new();
             for value in sequence {
                 let value = encrypt_yaml(value, recipients)?;
                 output.push(value);
             }
-            Ok(serde_yaml::Value::Sequence(output))
+            Ok(sy::Value::Sequence(output))
         }
-        serde_yaml::Value::String(s) => {
+        sy::Value::String(s) => {
             let output = if is_yage_encoded(s) {
                 // keep the already encrypted value
                 s.to_owned()
             } else {
                 encrypt_value(value, recipients)?
             };
-            Ok(serde_yaml::Value::String(output))
+            Ok(sy::Value::String(output))
         }
-        serde_yaml::Value::Number(_) => {
+        sy::Value::Number(_) => {
             let output = encrypt_value(value, recipients)?;
-            Ok(serde_yaml::Value::String(output))
+            Ok(sy::Value::String(output))
         }
         _ => Ok(value.clone()),
     }
 }
 
-pub fn encrypt_value(
-    value: &serde_yaml::Value,
-    recipients: &[x25519::Recipient],
-) -> Result<String> {
+pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Result<String> {
     type Recipients = Vec<Box<dyn age::Recipient + Send + 'static>>;
-    let data = serde_yaml::to_string(value)?;
+    let data = sy::to_string(value)?;
     let recipients = recipients
         .iter()
         .map(|r| Box::new(r.clone()) as Box<dyn age::Recipient + Send + 'static>)

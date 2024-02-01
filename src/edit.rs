@@ -1,5 +1,6 @@
 use std::fs::File;
 
+use serde_yaml as sy;
 use tempfile::tempdir;
 use treediff::tools::{ChangeType, Recorder};
 use treediff::value::Key;
@@ -17,8 +18,7 @@ pub fn edit(args: &EditArgs) -> Result<()> {
         recipients.push(identity.to_public());
     }
     debug!("loading yaml file: {:?}", args.file);
-    let input_data: serde_yaml::Value =
-        serde_yaml::from_reader(File::open(&args.file).path_ctx(&args.file)?)?;
+    let input_data: sy::Value = sy::from_reader(File::open(&args.file).path_ctx(&args.file)?)?;
     let previous_data = decrypt_yaml(&input_data, &identities)?;
     // save the decrypted data in an editable temporary file. The file has the same name as the
     // original file, but in a temporary directory. This way the user knows which file he is
@@ -33,7 +33,7 @@ pub fn edit(args: &EditArgs) -> Result<()> {
     let temp_file = dir.path().join(filename);
     {
         let output = File::create(&temp_file).path_ctx(&temp_file)?;
-        serde_yaml::to_writer(output, &previous_data)?;
+        sy::to_writer(output, &previous_data)?;
     }
     // open the editor
     let status = std::process::Command::new(&args.editor)
@@ -44,7 +44,7 @@ pub fn edit(args: &EditArgs) -> Result<()> {
         return Err(AppError::EditorError);
     }
     // load the data edited by the user
-    let edited_data: serde_yaml::Value = serde_yaml::from_reader(File::open(&temp_file)?)?;
+    let edited_data: sy::Value = sy::from_reader(File::open(&temp_file)?)?;
 
     // find what has not changed, and keep the encrypted data unchanged. That data is encrypted
     // with a nonce that make it appear different every time it is encrypted, so we avoid
@@ -65,12 +65,12 @@ pub fn edit(args: &EditArgs) -> Result<()> {
     let output_data = encrypt_yaml(&to_encrypt_data, &recipients)?;
     // save the encrypted data in the original file
     let output = File::create(&args.file).path_ctx(&args.file)?;
-    serde_yaml::to_writer(output, &output_data)?;
+    sy::to_writer(output, &output_data)?;
 
     Ok(())
 }
 
-fn yaml_get<'a>(data: &'a serde_yaml::Value, keys: &[Key]) -> Result<&'a serde_yaml::Value> {
+fn yaml_get<'a>(data: &'a sy::Value, keys: &[Key]) -> Result<&'a sy::Value> {
     if keys.is_empty() {
         return Ok(data);
     }

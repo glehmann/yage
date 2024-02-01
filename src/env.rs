@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::process::Command;
 
+use serde_yaml as sy;
+
 use crate::cli::EnvArgs;
 use crate::error::{AppError, Result};
 use crate::util::{decrypt_yaml, load_identities, stdin_or_file};
@@ -8,7 +10,7 @@ use crate::util::{decrypt_yaml, load_identities, stdin_or_file};
 pub fn env(args: &EnvArgs) -> Result<()> {
     let identities = load_identities(&args.keys, &args.key_files)?;
     debug!("loading yaml file: {:?}", args.file);
-    let input_data: serde_yaml::Value = serde_yaml::from_reader(stdin_or_file(&args.file)?)?;
+    let input_data: sy::Value = sy::from_reader(stdin_or_file(&args.file)?)?;
     let output_data = decrypt_yaml(&input_data, &identities)?;
     let env_data = build_env(&output_data)?;
     for (key, value) in &env_data {
@@ -26,10 +28,10 @@ pub fn env(args: &EnvArgs) -> Result<()> {
     Ok(())
 }
 
-fn build_env(data: &serde_yaml::Value) -> Result<HashMap<String, String>> {
+fn build_env(data: &sy::Value) -> Result<HashMap<String, String>> {
     let mut env = HashMap::new();
     match data {
-        serde_yaml::Value::Mapping(mapping) => {
+        sy::Value::Mapping(mapping) => {
             for (key, value) in mapping {
                 let key = plain_value_to_string(key)?;
                 let value = plain_value_to_string(value)?;
@@ -41,10 +43,10 @@ fn build_env(data: &serde_yaml::Value) -> Result<HashMap<String, String>> {
     Ok(env)
 }
 
-fn plain_value_to_string(data: &serde_yaml::Value) -> Result<String> {
+fn plain_value_to_string(data: &sy::Value) -> Result<String> {
     Ok(match data {
-        serde_yaml::Value::String(s) => s.to_owned(),
-        serde_yaml::Value::Number(n) => {
+        sy::Value::String(s) => s.to_owned(),
+        sy::Value::Number(n) => {
             if n.is_f64() {
                 n.as_f64().unwrap().to_string()
             } else if n.is_i64() {

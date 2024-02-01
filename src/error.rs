@@ -1,6 +1,7 @@
+use std::io;
 use std::{path::PathBuf, result};
 
-use std::io;
+use serde_yaml as sy;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -13,7 +14,7 @@ pub enum AppError {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
-    YamlError(#[from] serde_yaml::Error),
+    YamlError(#[from] sy::Error),
     #[error("can't parse recipient {recipient}: {message}")]
     RecipientParseError { recipient: String, message: String },
     #[error("can't parse key: {message}")]
