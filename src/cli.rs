@@ -51,13 +51,29 @@ pub struct PubkeyArgs {
 /// Edit an encrypted YAML file
 #[derive(Args, Debug)]
 pub struct EditArgs {
-    /// The private key
-    #[clap(short, long, env = "YAGE_KEY")]
-    pub key: Option<String>,
+    /// Decrypt with the specified key
+    #[clap(short, long = "key", env = "YAGE_KEY")]
+    pub keys: Vec<String>,
 
-    /// The path to the private key file
-    #[clap(short = 'K', long, name = "PATH", env = "YAGE_KEY_FILE")]
-    pub key_file: Option<PathBuf>,
+    /// Decrypt with the key at PATH
+    #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
+    pub key_files: Vec<PathBuf>,
+
+    /// Encrypt to the specified recipients
+    #[clap(short, long = "recipient", env = "YAGE_RECIPIENTS")]
+    pub recipients: Vec<String>,
+
+    /// Encrypt to recipients listed at PATH
+    #[clap(short = 'R', long = "recipient-path", env = "YAGE_RECIPIENTS_FILE")]
+    pub recipients_paths: Vec<PathBuf>,
+
+    /// The editor command to use
+    #[clap(short, long, env = "EDITOR")]
+    pub editor: PathBuf,
+
+    /// The YAML file to decrypt
+    #[arg()]
+    pub file: PathBuf,
 }
 
 /// Encrypted YAML file

@@ -34,6 +34,10 @@ pub enum AppError {
     NotAMapError,
     #[error("yaml value is not a string or a number")]
     NotAStringOrNumberError,
+    #[error("invalid file name: {path:?}")]
+    InvalidFileNameError { path: PathBuf },
+    #[error("editor exited with an error status")]
+    EditorError,
 }
 
 /// Alias for a `Result` with the error type `AppError`.
