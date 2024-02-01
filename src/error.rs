@@ -16,12 +16,20 @@ pub enum AppError {
     YamlError(#[from] serde_yaml::Error),
     #[error("can't parse recipient {recipient}: {message}")]
     RecipientParseError { recipient: String, message: String },
+    #[error("can't parse key: {message}")]
+    KeyParseError { message: String },
+    #[error(transparent)]
+    DecryptError(#[from] age::DecryptError),
     #[error(transparent)]
     EncryptError(#[from] age::EncryptError),
     #[error(transparent)]
     Utf8Error(#[from] std::string::FromUtf8Error),
+    #[error(transparent)]
+    Base64DecodeError(#[from] base64::DecodeError),
     #[error("no recipients provided")]
     NoRecipientsError,
+    #[error("passphrase not supported")]
+    PassphraseUnsupportedError,
 }
 
 /// Alias for a `Result` with the error type `AppError`.

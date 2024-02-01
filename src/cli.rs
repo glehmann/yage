@@ -76,16 +76,24 @@ pub struct EncryptArgs {
 #[derive(Args, Debug)]
 pub struct DecryptArgs {
     /// Decrypt with the specified key
-    #[clap(short, long, env = "YAGE_KEY")]
-    pub key: Option<String>,
+    #[clap(short, long = "key", env = "YAGE_KEY")]
+    pub keys: Vec<String>,
 
     /// Decrypt with the key at PATH
-    #[clap(short = 'K', long, name = "PATH", env = "YAGE_KEY_FILE")]
-    pub key_file: Option<PathBuf>,
+    #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
+    pub key_files: Vec<PathBuf>,
 
     /// Decrypt in place
     #[clap(short, long)]
     pub inplace: bool,
+
+    /// The output path to the decrypted YAML file
+    #[clap(short, long, default_value = "-")]
+    pub output: PathBuf,
+
+    /// The YAML file to decrypt
+    #[arg()]
+    pub file: PathBuf,
 }
 
 /// Execute a command with decrypted values inserted into the environment
