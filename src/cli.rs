@@ -19,12 +19,12 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    Keygen(KeygenArgs),
-    Pubkey(PubkeyArgs),
+    Decrypt(DecryptArgs),
     Edit(EditArgs),
     Encrypt(EncryptArgs),
-    Decrypt(DecryptArgs),
     Env(EnvArgs),
+    Keygen(KeygenArgs),
+    Pubkey(PubkeyArgs),
 }
 
 /// Generate a new age key
@@ -84,6 +84,10 @@ pub struct PubkeyArgs {
 /// Only the modified values are encrypted, the other values are left unchanged.
 #[derive(Args, Debug)]
 pub struct EditArgs {
+    /// The editor command to use
+    #[clap(short, long, env = "EDITOR")]
+    pub editor: PathBuf,
+
     /// Decrypt with the specified key
     ///
     /// Note that passing private keys as arguments or environment variables may expose them to other users
@@ -124,10 +128,6 @@ pub struct EditArgs {
     )]
     pub recipient_files: Vec<PathBuf>,
 
-    /// The editor command to use
-    #[clap(short, long, env = "EDITOR")]
-    pub editor: PathBuf,
-
     /// The encrypted YAML file to edit
     #[arg()]
     pub file: PathBuf,
@@ -145,6 +145,14 @@ pub struct EditArgs {
 /// and left unchanged.
 #[derive(Args, Debug)]
 pub struct EncryptArgs {
+    /// Encrypt in place
+    ///
+    /// The input file is overwritten with the encrypted data.
+    ///
+    /// The --output option is ignored if this option is used.
+    #[clap(short, long)]
+    pub in_place: bool,
+
     /// Encrypt to the specified recipients
     ///
     /// May be repeated.
@@ -164,14 +172,6 @@ pub struct EncryptArgs {
     )]
     pub recipient_files: Vec<PathBuf>,
 
-    /// Encrypt in place
-    ///
-    /// The input file is overwritten with the encrypted data.
-    ///
-    /// The --output option is ignored if this option is used.
-    #[clap(short, long)]
-    pub in_place: bool,
-
     /// The output path to the encrypted YAML file
     ///
     /// The encrypted YAML file is written to the standard output by default.
@@ -188,6 +188,14 @@ pub struct EncryptArgs {
 /// Decrypt the values in a YAML file
 #[derive(Args, Debug)]
 pub struct DecryptArgs {
+    /// Decrypt in place
+    ///
+    /// The input file is overwritten with the encrypted data.
+    ///
+    /// The --output option is ignored if this option is used.
+    #[clap(short, long)]
+    pub in_place: bool,
+
     /// Decrypt with the specified key
     ///
     /// Note that passing private keys as arguments or environment variables may expose them to other users
@@ -209,14 +217,6 @@ pub struct DecryptArgs {
     )]
     pub key_files: Vec<PathBuf>,
 
-    /// Decrypt in place
-    ///
-    /// The input file is overwritten with the encrypted data.
-    ///
-    /// The --output option is ignored if this option is used.
-    #[clap(short, long)]
-    pub in_place: bool,
-
     /// The output path to the decrypted YAML file
     ///
     /// The decrypted YAML file is written to the standard output by default.
@@ -235,6 +235,10 @@ pub struct DecryptArgs {
 /// Other more complex YAML structures are not supported.
 #[derive(Args, Debug)]
 pub struct EnvArgs {
+    /// Start with an empty environment
+    #[clap(short, long, default_value_t = false)]
+    pub ignore_environment: bool,
+
     /// Decrypt with the specified key
     ///
     /// Note that passing private keys as arguments or environment variables may expose them to other users
@@ -255,10 +259,6 @@ pub struct EnvArgs {
         env = "YAGE_KEY_FILE"
     )]
     pub key_files: Vec<PathBuf>,
-
-    /// Start with an empty environment
-    #[clap(short, long, default_value_t = false)]
-    pub ignore_environment: bool,
 
     /// The YAML file to decrypt
     #[arg()]
