@@ -42,18 +42,32 @@ pub struct KeygenArgs {
     pub output: PathBuf,
 }
 
-/// Convert private keys to their public key
+/// Convert private age keys to their public key
+///
+/// The input key and output public key are in the age format, which is compatible with the age tool.
 #[derive(Args, Debug)]
 pub struct PubkeyArgs {
-    /// Decrypt with the specified key
-    #[clap(env = "YAGE_KEY")]
-    pub keys: Vec<String>,
-
-    /// Decrypt with the key at PATH
-    #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
+    /// The private key files
+    ///
+    /// If the filename is -, the keys are read from the standard input.
+    ///
+    /// May be repeated.
+    #[clap(env = "YAGE_KEY_FILE")]
     pub key_files: Vec<PathBuf>,
 
-    /// The output path to the private key file
+    /// The private keys
+    ///
+    /// Note that passing private keys as arguments or environment variables may expose them to other users
+    /// on the system, and store them in your shell history. As a consequence the --key option and YAGE_KEY
+    /// environment variable should only be used in a secure environment.
+    ///
+    /// May be repeated.
+    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY")]
+    pub keys: Vec<String>,
+
+    /// The output path to the public key file
+    ///
+    /// The public keys are written to the standard output by default.
     #[clap(short, long, default_value = "-")]
     pub output: PathBuf,
 }
