@@ -5,7 +5,7 @@ use clap_verbosity_flag::{InfoLevel, Verbosity};
 
 /// A simple tool to manage encrypted secrets in YAML files with age encryption
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None, arg_required_else_help = true)]
+#[command(author, version, about, long_about = None)]
 pub struct Cli {
     /// Generate the completion code for this shell
     #[arg(long, name = "SHELL")]
@@ -15,7 +15,7 @@ pub struct Cli {
     pub verbose: Verbosity<InfoLevel>,
 
     #[command(subcommand)]
-    pub command: Option<Commands>,
+    pub command: Commands,
 
     #[arg(long, hide = true)]
     pub markdown_help: bool,

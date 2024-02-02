@@ -31,7 +31,7 @@ fn run() -> error::Result<()> {
         return Ok(());
     }
 
-    match cli.command.unwrap() {
+    match cli.command {
         cli::Commands::Keygen(ref args) => keygen::keygen(args)?,
         cli::Commands::Pubkey(ref args) => pubkey::pubkey(args)?,
         cli::Commands::Edit(ref args) => edit::edit(args)?,
