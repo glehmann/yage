@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{command, Args, Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 
-/// A simple tool to manage encrypted secrets in YAML files.
+/// A simple tool to manage encrypted secrets in YAML files with age encryption
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
 pub struct Cli {
