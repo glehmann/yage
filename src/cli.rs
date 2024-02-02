@@ -52,7 +52,7 @@ pub struct PubkeyArgs {
     /// If the filename is -, the keys are read from the standard input.
     ///
     /// May be repeated.
-    #[clap(env = "YAGE_KEY_FILE")]
+    #[clap(name = "KEY_FILE", env = "YAGE_KEY_FILE")]
     pub key_files: Vec<PathBuf>,
 
     /// The private keys
@@ -73,29 +73,62 @@ pub struct PubkeyArgs {
 }
 
 /// Edit an encrypted YAML file
+///
+/// The file is decrypted with the specified keys and open in a text editor. The user can edit the file
+/// and save it. The values are then encrypted with the same keys and the recipients, and saved in the
+/// original file.
+///
+/// The YAML file may contain some unencrypted values, and some encrypted values. The encrypted values
+/// are decrypted before the edition and all the values are encrypted after the edition.
+///
+/// Only the modified values are encrypted, the other values are left unchanged.
 #[derive(Args, Debug)]
 pub struct EditArgs {
     /// Decrypt with the specified key
-    #[clap(short, long = "key", env = "YAGE_KEY")]
+    ///
+    /// Note that passing private keys as arguments or environment variables may expose them to other users
+    /// on the system, and store them in your shell history. As a consequence the --key option and YAGE_KEY
+    /// environment variable should only be used in a secure environment.
+    ///
+    /// May be repeated.
+    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY")]
     pub keys: Vec<String>,
 
-    /// Decrypt with the key at PATH
-    #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
+    /// Decrypt with the key at in this file
+    ///
+    /// May be repeated.
+    #[clap(
+        short = 'K',
+        long = "key-file",
+        name = "KEY_FILE",
+        env = "YAGE_KEY_FILE"
+    )]
     pub key_files: Vec<PathBuf>,
 
     /// Encrypt to the specified recipients
-    #[clap(short, long = "recipient", env = "YAGE_RECIPIENT")]
+    ///
+    /// May be repeated.
+    #[clap(short, long = "recipient", name = "RECIPIENT", env = "YAGE_RECIPIENT")]
     pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
-    #[clap(short = 'R', long = "recipient-file", env = "YAGE_RECIPIENT_FILE")]
+    ///
+    /// The recipients file is a text file with one recipient per line.
+    ///
+    /// May be repeated.
+    #[clap(
+        short = 'R',
+        long = "recipient-file",
+        name = "RECIPIENT_FILE",
+        env = "YAGE_RECIPIENT_FILE"
+    )]
     pub recipient_files: Vec<PathBuf>,
 
     /// The editor command to use
     #[clap(short, long, env = "EDITOR")]
     pub editor: PathBuf,
 
-    /// The YAML file to decrypt
+    /// The encrypted YAML file to edit
     #[arg()]
     pub file: PathBuf,
 }
@@ -115,7 +148,7 @@ pub struct EncryptArgs {
     /// Encrypt to the specified recipients
     ///
     /// May be repeated.
-    #[clap(short, long = "recipient", env = "YAGE_RECIPIENT")]
+    #[clap(short, long = "recipient", name = "RECIPIENT", env = "YAGE_RECIPIENT")]
     pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
@@ -126,10 +159,10 @@ pub struct EncryptArgs {
     #[clap(
         short = 'R',
         long = "recipient-file",
-        name = "PATH",
+        name = "RECIPIENT_FILE",
         env = "YAGE_RECIPIENT_FILE"
     )]
-    pub recipients_files: Vec<PathBuf>,
+    pub recipient_files: Vec<PathBuf>,
 
     /// Encrypt in place
     ///
@@ -162,13 +195,18 @@ pub struct DecryptArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
-    #[clap(short, long = "key", env = "YAGE_KEY")]
+    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY")]
     pub keys: Vec<String>,
 
-    /// Decrypt with the key at PATH
+    /// Decrypt with the key in the file
     ///
     /// May be repeated.
-    #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
+    #[clap(
+        short = 'K',
+        long = "key-file",
+        name = "KEY_FILE",
+        env = "YAGE_KEY_FILE"
+    )]
     pub key_files: Vec<PathBuf>,
 
     /// Decrypt in place
@@ -204,13 +242,18 @@ pub struct EnvArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
-    #[clap(short, long = "key", env = "YAGE_KEY")]
+    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY")]
     pub keys: Vec<String>,
 
     /// Decrypt with the key at PATH
     ///
     /// May be repeated.
-    #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
+    #[clap(
+        short = 'K',
+        long = "key-file",
+        name = "KEY_FILE",
+        env = "YAGE_KEY_FILE"
+    )]
     pub key_files: Vec<PathBuf>,
 
     /// Start with an empty environment
