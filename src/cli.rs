@@ -190,15 +190,27 @@ pub struct DecryptArgs {
     pub file: PathBuf,
 }
 
-/// Execute a command with decrypted values inserted into the environment
+/// Execute a command with the environment from the encrypted YAML file
+///
+/// The YAML file must contain a map with string keys and values. The keys are the environment
+/// variable names, and the values are the environment variable values.
+/// Other more complex YAML structures are not supported.
 #[derive(Args, Debug)]
 pub struct EnvArgs {
     /// Decrypt with the specified key
-    #[clap(short, long = "keyà  ", env = "YAGE_KEY")]
+    ///
+    /// Note that passing private keys as arguments or environment variables may expose them to other users
+    /// on the system, and store them in your shell history. As a consequence the --key option and YAGE_KEY
+    /// environment variable should only be used in a secure environment.
+    ///
+    /// May be repeated.
+    #[clap(short, long = "key", env = "YAGE_KEY")]
     pub keys: Vec<String>,
 
     /// Decrypt with the key at PATH
-    #[clap(short = 'K', long, name = "PATH", env = "YAGE_KEY_FILE")]
+    ///
+    /// May be repeated.
+    #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
     pub key_files: Vec<PathBuf>,
 
     /// Start with an empty environment
@@ -209,11 +221,11 @@ pub struct EnvArgs {
     #[arg()]
     pub file: PathBuf,
 
-    /// Command to run
+    /// The command to run
     #[arg()]
     pub command: String,
 
-    /// Command arguments
+    /// The command arguments
     #[arg()]
     pub args: Vec<String>,
 }
