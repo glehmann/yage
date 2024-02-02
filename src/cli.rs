@@ -27,10 +27,17 @@ pub enum Commands {
     Env(EnvArgs),
 }
 
-/// Generate a new key
+/// Generate a new age key
+///
+/// The public part of the key is logged to the standard error output. It may be computed from the private
+/// key with the pubkey command.
+///
+/// The key is written in the age format, which is compatible with the age tool.
 #[derive(Args, Debug)]
 pub struct KeygenArgs {
-    /// The output path to the public key file
+    /// The output path to the private key file
+    ///
+    /// The private key is written to the standard output by default.
     #[clap(short, long, default_value = "-")]
     pub output: PathBuf,
 }
