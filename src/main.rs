@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate log;
 
+use std::io;
+
+use clap::CommandFactory;
 use clap::Parser;
 
 use yage::cli;
@@ -16,6 +19,11 @@ fn run() -> error::Result<()> {
     let cli = cli::Cli::parse();
     if let Some(level) = cli.verbose.log_level() {
         ocli::init(level).unwrap();
+    }
+
+    if let Some(shell) = cli.completion {
+        clap_complete::generate(shell, &mut cli::Cli::command(), "yage", &mut io::stdout());
+        return Ok(());
     }
 
     if cli.markdown_help {

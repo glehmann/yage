@@ -7,6 +7,10 @@ use clap_verbosity_flag::{InfoLevel, Verbosity};
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
 pub struct Cli {
+    /// Generate the completion code for this shell
+    #[arg(long, name = "SHELL")]
+    pub completion: Option<clap_complete::Shell>,
+
     #[command(flatten)]
     pub verbose: Verbosity<InfoLevel>,
 
