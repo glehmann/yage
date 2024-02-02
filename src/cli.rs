@@ -152,22 +152,36 @@ pub struct EncryptArgs {
     pub file: PathBuf,
 }
 
-/// Decrypted YAML file
+/// Decrypt the values in a YAML file
 #[derive(Args, Debug)]
 pub struct DecryptArgs {
     /// Decrypt with the specified key
+    ///
+    /// Note that passing private keys as arguments or environment variables may expose them to other users
+    /// on the system, and store them in your shell history. As a consequence the --key option and YAGE_KEY
+    /// environment variable should only be used in a secure environment.
+    ///
+    /// May be repeated.
     #[clap(short, long = "key", env = "YAGE_KEY")]
     pub keys: Vec<String>,
 
     /// Decrypt with the key at PATH
+    ///
+    /// May be repeated.
     #[clap(short = 'K', long = "key-file", name = "PATH", env = "YAGE_KEY_FILE")]
     pub key_files: Vec<PathBuf>,
 
     /// Decrypt in place
+    ///
+    /// The input file is overwritten with the encrypted data.
+    ///
+    /// The --output option is ignored if this option is used.
     #[clap(short, long)]
     pub in_place: bool,
 
     /// The output path to the decrypted YAML file
+    ///
+    /// The decrypted YAML file is written to the standard output by default.
     #[clap(short, long, default_value = "-")]
     pub output: PathBuf,
 
