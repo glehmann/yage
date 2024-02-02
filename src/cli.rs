@@ -100,14 +100,29 @@ pub struct EditArgs {
     pub file: PathBuf,
 }
 
-/// Encrypted YAML file
+/// Encrypt the values in a YAML file
+///
+/// Only the values are encrypted, the keys are left in clear.
+///
+/// The values are encrypted with the recipients' public keys in the age format,
+/// converted in base64 and surrounded by `yage[…]` markers.
+///
+/// This command is able to encrypt some new values in a file that already contains
+/// encrypted values. The encrypted values are detected thanks to the `yage[…]` markers
+/// and left unchanged.
 #[derive(Args, Debug)]
 pub struct EncryptArgs {
     /// Encrypt to the specified recipients
+    ///
+    /// May be repeated.
     #[clap(short, long = "recipient", env = "YAGE_RECIPIENT")]
     pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
+    ///
+    /// The recipients file is a text file with one recipient per line.
+    ///
+    /// May be repeated.
     #[clap(
         short = 'R',
         long = "recipient-file",
@@ -117,14 +132,22 @@ pub struct EncryptArgs {
     pub recipients_files: Vec<PathBuf>,
 
     /// Encrypt in place
+    ///
+    /// The input file is overwritten with the encrypted data.
+    ///
+    /// The --output option is ignored if this option is used.
     #[clap(short, long)]
     pub in_place: bool,
 
     /// The output path to the encrypted YAML file
+    ///
+    /// The encrypted YAML file is written to the standard output by default.
     #[clap(short, long, default_value = "-")]
     pub output: PathBuf,
 
     /// The YAML file to encrypt
+    ///
+    /// If the filename is -, the YAML file is read from the standard input.
     #[arg()]
     pub file: PathBuf,
 }
