@@ -20,6 +20,11 @@ fn run() -> error::Result<()> {
         ocli::init(level).unwrap();
     }
 
+    if cli.markdown_help {
+        clap_markdown::print_help_markdown::<cli::Cli>();
+        return Ok(());
+    }
+
     match cli.command.unwrap() {
         Commands::Keygen(ref args) => keygen::keygen(args)?,
         Commands::Pubkey(ref args) => pubkey::pubkey(args)?,
