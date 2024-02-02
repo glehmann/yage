@@ -12,7 +12,7 @@ use crate::util::{decrypt_yaml, encrypt_yaml, load_identities, load_recipients};
 
 pub fn edit(args: &EditArgs) -> Result<()> {
     let identities = load_identities(&args.keys, &args.key_files)?;
-    let mut recipients = load_recipients(&args.recipients, &args.recipients_paths)?;
+    let mut recipients = load_recipients(&args.recipients, &args.recipient_files)?;
     // add the identities to the recipients, so that the user can edit the file
     for identity in &identities {
         recipients.push(identity.to_public());

@@ -9,7 +9,7 @@ pub fn decrypt(args: &DecryptArgs) -> Result<()> {
     debug!("loading yaml file: {:?}", args.file);
     let input_data: sy::Value = sy::from_reader(stdin_or_file(&args.file)?)?;
     let output_data = decrypt_yaml(&input_data, &identities)?;
-    let output = stdout_or_file(if args.inplace {
+    let output = stdout_or_file(if args.in_place {
         &args.file
     } else {
         &args.output

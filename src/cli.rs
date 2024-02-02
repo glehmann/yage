@@ -60,12 +60,12 @@ pub struct EditArgs {
     pub key_files: Vec<PathBuf>,
 
     /// Encrypt to the specified recipients
-    #[clap(short, long = "recipient", env = "YAGE_RECIPIENTS")]
+    #[clap(short, long = "recipient", env = "YAGE_RECIPIENT")]
     pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
-    #[clap(short = 'R', long = "recipient-path", env = "YAGE_RECIPIENTS_FILE")]
-    pub recipients_paths: Vec<PathBuf>,
+    #[clap(short = 'R', long = "recipient-file", env = "YAGE_RECIPIENT_FILE")]
+    pub recipient_files: Vec<PathBuf>,
 
     /// The editor command to use
     #[clap(short, long, env = "EDITOR")]
@@ -80,21 +80,21 @@ pub struct EditArgs {
 #[derive(Args, Debug)]
 pub struct EncryptArgs {
     /// Encrypt to the specified recipients
-    #[clap(short, long = "recipient", env = "YAGE_RECIPIENTS")]
+    #[clap(short, long = "recipient", env = "YAGE_RECIPIENT")]
     pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
     #[clap(
         short = 'R',
-        long = "recipient-path",
+        long = "recipient-file",
         name = "PATH",
-        env = "YAGE_RECIPIENTS_FILE"
+        env = "YAGE_RECIPIENT_FILE"
     )]
-    pub recipients_paths: Vec<PathBuf>,
+    pub recipients_files: Vec<PathBuf>,
 
     /// Encrypt in place
     #[clap(short, long)]
-    pub inplace: bool,
+    pub in_place: bool,
 
     /// The output path to the encrypted YAML file
     #[clap(short, long, default_value = "-")]
@@ -118,7 +118,7 @@ pub struct DecryptArgs {
 
     /// Decrypt in place
     #[clap(short, long)]
-    pub inplace: bool,
+    pub in_place: bool,
 
     /// The output path to the decrypted YAML file
     #[clap(short, long, default_value = "-")]
@@ -133,7 +133,7 @@ pub struct DecryptArgs {
 #[derive(Args, Debug)]
 pub struct EnvArgs {
     /// Decrypt with the specified key
-    #[clap(short, long, env = "YAGE_KEY")]
+    #[clap(short, long = "keyà  ", env = "YAGE_KEY")]
     pub keys: Vec<String>,
 
     /// Decrypt with the key at PATH
@@ -149,7 +149,7 @@ pub struct EnvArgs {
     pub file: PathBuf,
 
     /// Command to run
-    #[arg(name = "COMMAND")]
+    #[arg()]
     pub command: String,
 
     /// Command arguments
