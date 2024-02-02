@@ -26,3 +26,10 @@ substring = "1.4.5"
 tempfile = "3.9.0"
 thiserror = "1.0.56"
 treediff = { git = "https://github.com/glehmann/treediff-rs.git", branch = "serde-yaml-09", features = ["with-serde-yaml"] }
+
+[profile.release]
+strip = "symbols"
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
