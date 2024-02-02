@@ -4,7 +4,7 @@ use std::process::Command;
 use serde_yaml as sy;
 
 use crate::cli::EnvArgs;
-use crate::error::{AppError, Result};
+use crate::error::{Result, YageError};
 use crate::util::{decrypt_yaml, load_identities, stdin_or_file};
 
 pub fn env(args: &EnvArgs) -> Result<()> {
@@ -38,7 +38,7 @@ fn build_env(data: &sy::Value) -> Result<HashMap<String, String>> {
                 env.insert(key, value);
             }
         }
-        _ => Err(AppError::NotAMapError)?,
+        _ => Err(YageError::NotAMap)?,
     }
     Ok(env)
 }
@@ -55,6 +55,6 @@ fn plain_value_to_string(data: &sy::Value) -> Result<String> {
                 n.as_u64().unwrap().to_string()
             }
         }
-        _ => Err(AppError::NotAStringOrNumberError)?,
+        _ => Err(YageError::NotAStringOrNumber)?,
     })
 }

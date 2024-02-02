@@ -5,46 +5,46 @@ use serde_yaml as sy;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum AppError {
+pub enum YageError {
     #[error("{path}: {source}")]
-    PathIoError {
+    PathIo {
         path: PathBuf,
         source: std::io::Error,
     },
     #[error(transparent)]
-    IoError(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
     #[error(transparent)]
-    YamlError(#[from] sy::Error),
+    Yaml(#[from] sy::Error),
     #[error("can't parse recipient {recipient}: {message}")]
-    RecipientParseError { recipient: String, message: String },
+    RecipientParse { recipient: String, message: String },
     #[error("can't parse key: {message}")]
-    KeyParseError { message: String },
+    KeyParse { message: String },
     #[error(transparent)]
-    DecryptError(#[from] age::DecryptError),
+    Decrypt(#[from] age::DecryptError),
     #[error(transparent)]
-    EncryptError(#[from] age::EncryptError),
+    Encrypt(#[from] age::EncryptError),
     #[error(transparent)]
-    Utf8Error(#[from] std::string::FromUtf8Error),
+    Utf8(#[from] std::string::FromUtf8Error),
     #[error(transparent)]
-    Base64DecodeError(#[from] base64::DecodeError),
+    Base64Decode(#[from] base64::DecodeError),
     #[error("no recipients provided")]
-    NoRecipientsError,
+    NoRecipients,
     #[error("passphrase not supported")]
-    PassphraseUnsupportedError,
+    PassphraseUnsupported,
     #[error("yaml value is not a map")]
-    NotAMapError,
+    NotAMap,
     #[error("yaml value is not a string or a number")]
-    NotAStringOrNumberError,
+    NotAStringOrNumber,
     #[error("invalid file name: {path:?}")]
-    InvalidFileNameError { path: PathBuf },
+    InvalidFileName { path: PathBuf },
     #[error("editor exited with an error status")]
-    EditorError,
+    Editor,
     #[error("key not found")]
-    KeyNotFoundError,
+    KeyNotFound,
 }
 
 /// Alias for a `Result` with the error type `AppError`.
-pub type Result<T> = result::Result<T, AppError>;
+pub type Result<T> = result::Result<T, YageError>;
 
 pub trait IOResultExt<T> {
     fn path_ctx<P: Into<PathBuf>>(self, path: P) -> Result<T>;
@@ -52,7 +52,7 @@ pub trait IOResultExt<T> {
 
 impl<T> IOResultExt<T> for io::Result<T> {
     fn path_ctx<P: Into<PathBuf>>(self, path: P) -> Result<T> {
-        self.map_err(|source| AppError::PathIoError {
+        self.map_err(|source| YageError::PathIo {
             source,
             path: path.into(),
         })

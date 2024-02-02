@@ -7,7 +7,7 @@ use treediff::value::Key;
 use treediff::Mutable;
 
 use crate::cli::EditArgs;
-use crate::error::{AppError, IOResultExt, Result};
+use crate::error::{IOResultExt, Result, YageError};
 use crate::util::{decrypt_yaml, encrypt_yaml, load_identities, load_recipients};
 
 pub fn edit(args: &EditArgs) -> Result<()> {
@@ -24,12 +24,9 @@ pub fn edit(args: &EditArgs) -> Result<()> {
     // original file, but in a temporary directory. This way the user knows which file he is
     // editing if its editor shows the file name.
     let dir = tempdir()?;
-    let filename = args
-        .file
-        .file_name()
-        .ok_or(AppError::InvalidFileNameError {
-            path: args.file.clone(),
-        })?;
+    let filename = args.file.file_name().ok_or(YageError::InvalidFileName {
+        path: args.file.clone(),
+    })?;
     let temp_file = dir.path().join(filename);
     {
         let output = File::create(&temp_file).path_ctx(&temp_file)?;
@@ -41,7 +38,7 @@ pub fn edit(args: &EditArgs) -> Result<()> {
         .spawn()?
         .wait()?;
     if !status.success() {
-        return Err(AppError::EditorError);
+        return Err(YageError::Editor);
     }
     // load the data edited by the user
     let edited_data: sy::Value = sy::from_reader(File::open(&temp_file)?)?;
@@ -77,11 +74,11 @@ fn yaml_get<'a>(data: &'a sy::Value, keys: &[Key]) -> Result<&'a sy::Value> {
     let key = &keys[0];
     match key {
         Key::String(k) => {
-            let value = data.get(k).ok_or(AppError::KeyNotFoundError)?;
+            let value = data.get(k).ok_or(YageError::KeyNotFound)?;
             yaml_get(value, &keys[1..])
         }
         Key::Index(i) => {
-            let value = data.get(i).ok_or(AppError::KeyNotFoundError)?;
+            let value = data.get(i).ok_or(YageError::KeyNotFound)?;
             yaml_get(value, &keys[1..])
         }
     }

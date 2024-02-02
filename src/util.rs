@@ -9,7 +9,7 @@ use base64::prelude::*;
 use serde_yaml as sy;
 use substring::Substring;
 
-use crate::error::{AppError, IOResultExt, Result};
+use crate::error::{IOResultExt, Result, YageError};
 
 pub fn stdout_or_file(path: &Path) -> Result<Box<dyn Write>> {
     Ok(if path == Path::new("-") {
@@ -65,7 +65,7 @@ pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Val
         let encrypted = BASE64_STANDARD.decode(encoded)?;
         let decryptor = match age::Decryptor::new(&encrypted[..])? {
             age::Decryptor::Recipients(d) => Ok(d),
-            _ => Err(AppError::PassphraseUnsupportedError),
+            _ => Err(YageError::PassphraseUnsupported),
         }?;
         let mut decrypted = vec![];
         let mut reader = decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
@@ -82,7 +82,7 @@ pub fn load_identities(keys: &[String], key_files: &[PathBuf]) -> Result<Vec<x25
     for key in keys.iter() {
         debug!("loading key: {key}");
         let key = x25519::Identity::from_str(key)
-            .map_err(|e| AppError::KeyParseError { message: e.into() })?;
+            .map_err(|e| YageError::KeyParse { message: e.into() })?;
         identities.push(key);
     }
     for key_file in key_files.iter() {
@@ -141,8 +141,7 @@ pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Res
         .map(|r| Box::new(r.clone()) as Box<dyn age::Recipient + Send + 'static>)
         .collect::<Recipients>();
     let mut encrypted = vec![];
-    let encryptor =
-        age::Encryptor::with_recipients(recipients).ok_or(AppError::NoRecipientsError)?;
+    let encryptor = age::Encryptor::with_recipients(recipients).ok_or(YageError::NoRecipients)?;
     // let mut armored = ArmoredWriter::wrap_output(&mut encrypted, Format::AsciiArmor)?;
     let mut writer = encryptor.wrap_output(&mut encrypted)?;
     writer.write_all(data.as_bytes())?;
@@ -160,7 +159,7 @@ pub fn load_recipients(
     for recipient in recipients.iter() {
         debug!("loading recipient: {recipient}");
         let recipient =
-            x25519::Recipient::from_str(recipient).map_err(|e| AppError::RecipientParseError {
+            x25519::Recipient::from_str(recipient).map_err(|e| YageError::RecipientParse {
                 recipient: recipient.to_owned(),
                 message: e.into(),
             })?;
@@ -172,12 +171,11 @@ pub fn load_recipients(
         let input = stdin_or_file(path)?;
         for recipient in input.lines() {
             let recipient = recipient.path_ctx(path)?;
-            let recipient = x25519::Recipient::from_str(&recipient).map_err(|e| {
-                AppError::RecipientParseError {
+            let recipient =
+                x25519::Recipient::from_str(&recipient).map_err(|e| YageError::RecipientParse {
                     recipient: recipient.to_owned(),
                     message: e.into(),
-                }
-            })?;
+                })?;
             res.push(recipient);
         }
     }
