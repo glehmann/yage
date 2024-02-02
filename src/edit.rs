@@ -71,9 +71,9 @@ fn yaml_get<'a>(data: &'a sy::Value, keys: &[Key]) -> Result<&'a sy::Value> {
     if keys.is_empty() {
         return Ok(data);
     }
-    let key = &keys[0];
-    match key {
+    match &keys[0] {
         Key::String(k) => {
+            let k: sy::Value = sy::from_str(k)?;
             let value = data.get(k).ok_or(YageError::KeyNotFound)?;
             yaml_get(value, &keys[1..])
         }

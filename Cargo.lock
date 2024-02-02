@@ -1210,7 +1210,7 @@ dependencies = [
 [[package]]
 name = "treediff"
 version = "4.0.2"
-source = "git+https://github.com/glehmann/treediff-rs.git?branch=serde-yaml-09#4ad230f5e04a3c933761f707ad0566e8bef96974"
+source = "git+https://github.com/glehmann/treediff-rs.git?branch=serde-yaml-09#f42592e30732737d526b2560f8d6b7bec380c82d"
 dependencies = [
  "serde_yaml",
 ]
