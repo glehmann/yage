@@ -9,7 +9,7 @@ repository = "https://github.com/glehmann/ocli.git"
 homepage = "https://github.com/glehmann/ocli.git"
 documentation = "https://docs.rs/ocli/latest/ocli/"
 license = "MIT"
-keywords = ["secret management", "yaml", "encryption", "cli", "age"]
+keywords = ["secret", "yaml", "encryption", "cli", "age"]
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
