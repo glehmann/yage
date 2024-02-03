@@ -26,7 +26,7 @@ fn generate_man<C: clap::CommandFactory>() -> std::io::Result<()> {
 }
 
 fn generate_markdown<C: clap::CommandFactory>() -> std::io::Result<()> {
-    let md = clap_markdown::help_markdown::<Cli>();
+    let md = clap_markdown::help_markdown::<C>();
     let mut f = fs::File::create("doc/CommandLineHelp.md")?;
     write!(f, "{md}")?;
     Ok(())

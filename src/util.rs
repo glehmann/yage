@@ -28,7 +28,7 @@ pub fn stdin_or_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
 }
 
 pub fn is_yage_encoded(s: &str) -> bool {
-    s.starts_with("yage[") && s.ends_with("]")
+    s.starts_with("yage[") && s.ends_with(']')
 }
 
 pub fn decrypt_yaml(value: &sy::Value, identities: &[x25519::Identity]) -> Result<sy::Value> {
