@@ -10,7 +10,7 @@ fn main() -> std::io::Result<()> {
 
 fn generate_man<C: clap::CommandFactory>() -> std::io::Result<()> {
     let command = C::command();
-    let out_dir: PathBuf = "docs".into();
+    let out_dir: PathBuf = "doc".into();
     let name = command.get_name();
     let name = if name == "yage" {
         "yage.1".to_owned()
@@ -27,7 +27,7 @@ fn generate_man<C: clap::CommandFactory>() -> std::io::Result<()> {
 
 fn generate_markdown<C: clap::CommandFactory>() -> std::io::Result<()> {
     let md = clap_markdown::help_markdown::<Cli>();
-    let mut f = fs::File::create("docs/CommandLineHelp.md")?;
+    let mut f = fs::File::create("doc/CommandLineHelp.md")?;
     write!(f, "{md}")?;
     Ok(())
 }

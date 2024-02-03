@@ -82,7 +82,7 @@ Options:
   -V, --version             Print version
 ```
 
-See also the [markdown version of the command line reference](docs/CommandLineHelp.md).
+See also the [markdown version of the command line reference](doc/CommandLineHelp.md).
 
 You may also find convenient to install the completion for your shell. For example for fish:
 
