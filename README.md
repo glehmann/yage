@@ -29,12 +29,17 @@ workflows.
 
 If you think this looks a lot like [SOPS](https://getsops.io/), you're right! This is basically what
 SOPS is doing, but we some key differences:
-* `yage` doesn't include any extra data in the encrypted file, in particular no `mac` field. This
-  allow the encrypted file to be modified by someone that only has the public key, while still preserving
-  the encrypted values.
+* `yage` doesn't include any metadata in the encrypted file, in particular no [MAC](https://en.wikipedia.org/wiki/Message_authentication_code).
 * `yage` is focused on age encryption, and include everything required in a single binary.
-* `yage` arguments and options are designed to be easy to use in a CI/CD pipeline, in a shell script,
-  in a git hook or interactively.
+
+The lack of MAC, while it could be seen as a missed opportunity to add some security, actually allows
+some interesting use cases:
+  * the encrypted file can modified by someone that only has the public key, while still preserving
+    the encrypted values.
+  * the encrypted file can modified by multiple persons and merged in a version control system without
+    having to decrypt it first.
+  * the encrypted file only contains the original keys and the encrypted values, so it can be used
+    to verify that it is usable for a specific task without having to decrypt it or remove the metadata.
 
 ## Installation
 
@@ -203,6 +208,22 @@ with the environment variables set to the decrypted values in a single command:
 ```sh
 $ yage run -K prod.key secrets.yaml env terraform apply
 ```
+
+## Why?
+
+Mostly to unlock the ability to add values to an encrypted file without having to decrypt it,
+thing that is not possible with SOPS. Something I've not been the only one frustrated with, see
+[here](https://github.com/getsops/sops/discussions/1081),
+[here](https://stackoverflow.com/questions/74103453/is-it-possible-to-update-a-sops-encrypted-file-without-decrypting-it-first),
+[here](https://github.com/getsops/sops/issues/1117), [here](https://github.com/getsops/sops/issues/833), …
+
+And because writing command line tools in rust is fun!
+
+## Still to be done
+
+* [ ] Add tests. Coming soon!
+* [ ] Add a status command to ensure the whole file is encrypted/decrypted
+* [ ] Support comments. Sadly no YAML library that I know of supports comments, so this will be a bit tricky.
 
 ## License
 
