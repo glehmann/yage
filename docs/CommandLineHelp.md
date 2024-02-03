@@ -14,9 +14,9 @@ This document contains the help content for the `yage` command-line program.
 
 ## `yage`
 
-A simple tool to manage encrypted secrets in YAML files.
+A simple tool to manage encrypted secrets in YAML files with age encryption
 
-**Usage:** `yage [OPTIONS] [COMMAND]`
+**Usage:** `yage [OPTIONS] <COMMAND>`
 
 ###### **Subcommands:**
 
@@ -194,4 +194,3 @@ The input key and output public key are in the age format, which is compatible w
     This document was generated automatically by
     <a href="https://crates.io/crates/clap-markdown"><code>clap-markdown</code></a>.
 </i></small>
-
