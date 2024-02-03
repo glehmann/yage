@@ -282,6 +282,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "702fc72eb24e5a1e48ce58027a675bc24edd52096d5397d4aea7c6dd9eca0bd1"
 
 [[package]]
+name = "clap_mangen"
+version = "0.2.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e35a078f3aae828c9b7ad58e1631dab87e9dac40da19418f2219bbf3198aa5c"
+dependencies = [
+ "clap",
+ "roff",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -913,6 +923,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "roff"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b833d8d034ea094b1ea68aa6d5c740e0d04bad9d16568d08ba6f76823a114316"
+
+[[package]]
 name = "rust-embed"
 version = "6.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1230,7 +1246,7 @@ dependencies = [
 [[package]]
 name = "treediff"
 version = "4.0.2"
-source = "git+https://github.com/glehmann/treediff-rs.git?branch=serde-yaml-09#f42592e30732737d526b2560f8d6b7bec380c82d"
+source = "git+https://github.com/glehmann/treediff-rs.git?branch=serde-yaml-09#3177d4a6fc8226fa3fdfef656f934db0b75db541"
 dependencies = [
  "serde_yaml",
 ]
@@ -1490,9 +1506,9 @@ checksum = "dff9641d1cd4be8d1a070daf9e3773c5f67e78b4d9d42263020c057706765c04"
 
 [[package]]
 name = "winnow"
-version = "0.5.36"
+version = "0.5.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "818ce546a11a9986bc24f93d0cdf38a8a1a400f1473ea8c82e59f6e0ffab9249"
+checksum = "a7cad8365489051ae9f054164e459304af2e7e9bb407c958076c8bf4aef52da5"
 dependencies = [
  "memchr",
 ]
@@ -1518,6 +1534,7 @@ dependencies = [
  "clap-markdown",
  "clap-verbosity-flag",
  "clap_complete",
+ "clap_mangen",
  "log",
  "ocli",
  "serde_yaml",
