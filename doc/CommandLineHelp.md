@@ -35,10 +35,6 @@ A simple tool to manage encrypted secrets in YAML files with age encryption
 
 * `-v`, `--verbose` — Increase logging verbosity
 * `-q`, `--quiet` — Decrease logging verbosity
-* `--markdown-help`
-
-  Possible values: `true`, `false`
-
 
 
 

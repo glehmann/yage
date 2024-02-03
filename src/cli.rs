@@ -16,9 +16,6 @@ pub struct Cli {
 
     #[command(subcommand)]
     pub command: Commands,
-
-    #[arg(long, hide = true)]
-    pub markdown_help: bool,
 }
 
 #[derive(Subcommand, Debug)]

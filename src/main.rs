@@ -26,11 +26,6 @@ fn run() -> error::Result<()> {
         return Ok(());
     }
 
-    if cli.markdown_help {
-        clap_markdown::print_help_markdown::<cli::Cli>();
-        return Ok(());
-    }
-
     match cli.command {
         cli::Commands::Keygen(ref args) => keygen::keygen(args)?,
         cli::Commands::Pubkey(ref args) => pubkey::pubkey(args)?,
