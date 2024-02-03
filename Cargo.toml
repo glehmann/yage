@@ -5,9 +5,9 @@ edition = "2021"
 authors = ["Gaëtan Lehmann <gaetan.lehmann@gmail.com>"]
 description = "A simple tool to manage encrypted secrets in YAML files with age encryption"
 readme = "README.md"
-repository = "https://github.com/glehmann/ocli.git"
-homepage = "https://github.com/glehmann/ocli.git"
-documentation = "https://docs.rs/ocli/latest/ocli/"
+repository = "https://github.com/glehmann/yage.git"
+homepage = "https://github.com/glehmann/yaqe/"
+documentation = "https://github.com/glehmann/yaqe/"
 license = "MIT"
 keywords = ["secret", "yaml", "encryption", "cli", "age"]
 
