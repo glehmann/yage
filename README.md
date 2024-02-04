@@ -209,6 +209,36 @@ with the environment variables set to the decrypted values in a single command:
 $ yage run -K prod.key secrets.yaml env terraform apply
 ```
 
+## Pre-commit hook
+
+`yage` can be used in a pre-commit hook to make sure that the secrets are always encrypted before
+committing them to the repository. Here is an example of a `.pre-commit-config.yaml` file that
+uses `yage` to detect the non-encrypted secrets in a YAML file before committing them:
+
+```yaml
+repos:
+  - repo: https://github.com/glehmann/yage
+    rev: 0.2.0
+    hooks:
+      - id: yage-detect
+        files: "secrets-.+\\.yaml"
+```
+
+The `files` option is a regular expression that matches the files that should be checked by `yage`.
+
+If your public key is in the repository, you can also add a hook to encrypt the secrets before
+committing them:
+
+```yaml
+repos:
+  - repo: https://github.com/glehmann/yage
+    rev: 0.2.0
+    hooks:
+      - id: yage-encrypt
+        files: "secrets-prod-.+\\.yaml"
+        args: ["-R", "prod.pub"]
+```
+
 ## Why?
 
 Mostly to unlock the ability to add values to an encrypted file without having to decrypt it,
