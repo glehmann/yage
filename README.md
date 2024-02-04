@@ -221,7 +221,6 @@ And because writing command line tools in rust is fun!
 ## Still to be done
 
 * [ ] Add tests. Coming soon!
-* [ ] Add a status command to ensure the whole file is encrypted/decrypted
 * [ ] Support comments. Sadly no YAML library that I know of supports comments, so this will be a bit tricky.
 
 ## License

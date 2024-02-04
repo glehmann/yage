@@ -32,6 +32,7 @@ use std::str::FromStr;
 use age::x25519;
 use base64::prelude::*;
 use serde_yaml as sy;
+use strum::{Display, EnumIs, EnumIter, EnumString};
 use substring::Substring;
 
 use crate::error::{IOResultExt, Result, YageError};
@@ -238,11 +239,52 @@ pub fn load_recipients(
     Ok(res)
 }
 
-pub fn check_encrypted(value: &sy::Value) -> bool {
+#[derive(Debug, Clone, Copy, PartialEq, Display, EnumString, EnumIs, EnumIter)]
+pub enum EncryptionStatus {
+    Encrypted,
+    NotEncrypted,
+    Mixed,
+}
+
+pub fn check_encrypted(value: &sy::Value) -> EncryptionStatus {
     match value {
-        sy::Value::Mapping(mapping) => mapping.iter().all(|(_, value)| check_encrypted(value)),
-        sy::Value::Sequence(sequence) => sequence.iter().all(|value| check_encrypted(value)),
-        sy::Value::String(s) => is_yage_encoded(s),
-        _ => false,
+        sy::Value::Mapping(mapping) => {
+            if mapping
+                .iter()
+                .all(|(_, value)| check_encrypted(value) == EncryptionStatus::Encrypted)
+            {
+                EncryptionStatus::Encrypted
+            } else if mapping
+                .iter()
+                .any(|(_, value)| check_encrypted(value) != EncryptionStatus::NotEncrypted)
+            {
+                EncryptionStatus::Mixed
+            } else {
+                EncryptionStatus::NotEncrypted
+            }
+        }
+        sy::Value::Sequence(sequence) => {
+            if sequence
+                .iter()
+                .all(|value| check_encrypted(value) == EncryptionStatus::Encrypted)
+            {
+                EncryptionStatus::Encrypted
+            } else if sequence
+                .iter()
+                .any(|value| check_encrypted(value) != EncryptionStatus::NotEncrypted)
+            {
+                EncryptionStatus::Mixed
+            } else {
+                EncryptionStatus::NotEncrypted
+            }
+        }
+        sy::Value::String(s) => {
+            if is_yage_encoded(s) {
+                EncryptionStatus::Encrypted
+            } else {
+                EncryptionStatus::NotEncrypted
+            }
+        }
+        _ => EncryptionStatus::NotEncrypted,
     }
 }
