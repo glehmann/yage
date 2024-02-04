@@ -17,7 +17,7 @@ This document contains the help content for the `yage` command-line program.
 
 A simple tool to manage encrypted secrets in YAML files with age encryption
 
-**Usage:** `yage [OPTIONS] <COMMAND>`
+**Usage:** `yage [OPTIONS] [COMMAND]`
 
 ###### **Subcommands:**
 

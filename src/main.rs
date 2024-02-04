@@ -21,7 +21,7 @@ fn run() -> error::Result<i32> {
         return Ok(0);
     }
 
-    match &cli.command {
+    match &cli.command.unwrap() {
         cli::Commands::Keygen(args) => cmd::keygen(args),
         cli::Commands::Pubkey(args) => cmd::pubkey(args),
         cli::Commands::Edit(args) => cmd::edit(args),

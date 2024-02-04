@@ -61,7 +61,7 @@ in this repository
 
 ```sh
 $ yage --help
-A simple tool to manage encrypted secrets in YAML files.
+A simple tool to manage encrypted secrets in YAML files with age encryption
 
 Usage: yage [OPTIONS] [COMMAND]
 
@@ -72,12 +72,13 @@ Commands:
   env      Execute a command with the environment from the encrypted YAML file
   keygen   Generate a new age key
   pubkey   Convert private age keys to their public key
+  status   Check the encryption status of a YAML file
   help     Print this message or the help of the given subcommand(s)
 
 Options:
+      --completion <SHELL>  Generate the completion code for this shell [possible values: bash, elvish, fish, powershell, zsh]
   -v, --verbose...          Increase logging verbosity
   -q, --quiet...            Decrease logging verbosity
-      --completion <SHELL>  Generate the completion code for this shell [possible values: bash, elvish, fish, powershell, zsh]
   -h, --help                Print help
   -V, --version             Print version
 ```
