@@ -179,11 +179,11 @@ pub struct EncryptArgs {
     #[clap(short, long, default_value = "-")]
     pub output: PathBuf,
 
-    /// The YAML file to encrypt
+    /// The YAML files to encrypt
     ///
     /// If the filename is -, the YAML file is read from the standard input.
     #[arg()]
-    pub file: PathBuf,
+    pub files: Vec<PathBuf>,
 }
 
 /// Decrypt the values in a YAML file
@@ -224,9 +224,9 @@ pub struct DecryptArgs {
     #[clap(short, long, default_value = "-")]
     pub output: PathBuf,
 
-    /// The YAML file to decrypt
+    /// The YAML files to decrypt
     #[arg()]
-    pub file: PathBuf,
+    pub files: Vec<PathBuf>,
 }
 
 /// Execute a command with the environment from the encrypted YAML file

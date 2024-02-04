@@ -42,11 +42,11 @@ A simple tool to manage encrypted secrets in YAML files with age encryption
 
 Decrypt the values in a YAML file
 
-**Usage:** `yage decrypt [OPTIONS] <FILE>`
+**Usage:** `yage decrypt [OPTIONS] [FILES]...`
 
 ###### **Arguments:**
 
-* `<FILE>` — The YAML file to decrypt
+* `<FILES>` — The YAML files to decrypt
 
 ###### **Options:**
 
@@ -98,11 +98,11 @@ The values are encrypted with the recipients' public keys in the age format, con
 
 This command is able to encrypt some new values in a file that already contains encrypted values. The encrypted values are detected thanks to the `yage[…]` markers and left unchanged.
 
-**Usage:** `yage encrypt [OPTIONS] <FILE>`
+**Usage:** `yage encrypt [OPTIONS] [FILES]...`
 
 ###### **Arguments:**
 
-* `<FILE>` — The YAML file to encrypt
+* `<FILES>` — The YAML files to encrypt
 
 ###### **Options:**
 
