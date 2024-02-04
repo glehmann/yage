@@ -7,7 +7,7 @@ use crate::cli::EnvArgs;
 use crate::error::{Result, YageError};
 use crate::{decrypt_yaml, load_identities, stdin_or_file};
 
-pub fn env(args: &EnvArgs) -> Result<()> {
+pub fn env(args: &EnvArgs) -> Result<i32> {
     let identities = load_identities(&args.keys, &args.key_files)?;
     debug!("loading yaml file: {:?}", args.file);
     let input_data: sy::Value = sy::from_reader(stdin_or_file(&args.file)?)?;
@@ -22,10 +22,7 @@ pub fn env(args: &EnvArgs) -> Result<()> {
     }
     command.args(&args.args).envs(&env_data);
     let status = command.spawn()?.wait()?;
-    if !status.success() {
-        std::process::exit(status.code().unwrap_or(1));
-    }
-    Ok(())
+    Ok(status.code().unwrap_or(1))
 }
 
 fn build_env(data: &sy::Value) -> Result<HashMap<String, String>> {

@@ -10,7 +10,7 @@ use crate::cli::EditArgs;
 use crate::error::{IOResultExt, Result, YageError};
 use crate::{create_private_file, decrypt_yaml, encrypt_yaml, load_identities, load_recipients};
 
-pub fn edit(args: &EditArgs) -> Result<()> {
+pub fn edit(args: &EditArgs) -> Result<i32> {
     let identities = load_identities(&args.keys, &args.key_files)?;
     let mut recipients = load_recipients(&args.recipients, &args.recipient_files)?;
     // add the identities to the recipients, so that the user can edit the file
@@ -64,7 +64,7 @@ pub fn edit(args: &EditArgs) -> Result<()> {
     let output = File::create(&args.file).path_ctx(&args.file)?;
     sy::to_writer(output, &output_data)?;
 
-    Ok(())
+    Ok(0)
 }
 
 fn yaml_get<'a>(data: &'a sy::Value, keys: &[Key]) -> Result<&'a sy::Value> {

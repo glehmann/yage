@@ -11,12 +11,14 @@ pub mod cmd {
     mod env;
     mod keygen;
     mod pubkey;
+    mod status;
     pub use decrypt::decrypt;
     pub use edit::edit;
     pub use encrypt::encrypt;
     pub use env::env;
     pub use keygen::keygen;
     pub use pubkey::pubkey;
+    pub use status::status;
 }
 
 use std::fs::{File, OpenOptions};
@@ -234,4 +236,13 @@ pub fn load_recipients(
         }
     }
     Ok(res)
+}
+
+pub fn check_encrypted(value: &sy::Value) -> bool {
+    match value {
+        sy::Value::Mapping(mapping) => mapping.iter().all(|(_, value)| check_encrypted(value)),
+        sy::Value::Sequence(sequence) => sequence.iter().all(|value| check_encrypted(value)),
+        sy::Value::String(s) => is_yage_encoded(s),
+        _ => false,
+    }
 }

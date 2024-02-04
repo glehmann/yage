@@ -4,7 +4,7 @@ use crate::cli::EncryptArgs;
 use crate::error::Result;
 use crate::{encrypt_yaml, load_recipients, stdin_or_file, stdout_or_file};
 
-pub fn encrypt(args: &EncryptArgs) -> Result<()> {
+pub fn encrypt(args: &EncryptArgs) -> Result<i32> {
     let recipients = load_recipients(&args.recipients, &args.recipient_files)?;
     for file in &args.files {
         debug!("loading yaml file: {file:?}");
@@ -13,5 +13,5 @@ pub fn encrypt(args: &EncryptArgs) -> Result<()> {
         let output = stdout_or_file(if args.in_place { file } else { &args.output })?;
         sy::to_writer(output, &output_data)?;
     }
-    Ok(())
+    Ok(0)
 }

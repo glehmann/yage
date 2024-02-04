@@ -11,6 +11,7 @@ This document contains the help content for the `yage` command-line program.
 * [`yage env`↴](#yage-env)
 * [`yage keygen`↴](#yage-keygen)
 * [`yage pubkey`↴](#yage-pubkey)
+* [`yage status`↴](#yage-status)
 
 ## `yage`
 
@@ -26,6 +27,7 @@ A simple tool to manage encrypted secrets in YAML files with age encryption
 * `env` — Execute a command with the environment from the encrypted YAML file
 * `keygen` — Generate a new age key
 * `pubkey` — Convert private age keys to their public key
+* `status` — Check the encryption status of a YAML file
 
 ###### **Options:**
 
@@ -182,6 +184,18 @@ The input key and output public key are in the age format, which is compatible w
 * `-o`, `--output <OUTPUT>` — The output path to the public key file
 
   Default value: `-`
+
+
+
+## `yage status`
+
+Check the encryption status of a YAML file
+
+**Usage:** `yage status [FILES]...`
+
+###### **Arguments:**
+
+* `<FILES>` — The YAML files to decrypt
 
 
 

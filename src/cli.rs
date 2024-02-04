@@ -26,6 +26,7 @@ pub enum Commands {
     Env(EnvArgs),
     Keygen(KeygenArgs),
     Pubkey(PubkeyArgs),
+    Status(StatusArgs),
 }
 
 /// Generate a new age key
@@ -276,6 +277,14 @@ pub struct EnvArgs {
     /// The command arguments
     #[arg()]
     pub args: Vec<String>,
+}
+
+/// Check the encryption status of a YAML file
+#[derive(Args, Debug)]
+pub struct StatusArgs {
+    /// The YAML files to decrypt
+    #[arg()]
+    pub files: Vec<PathBuf>,
 }
 
 #[test]
