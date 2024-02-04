@@ -7,13 +7,8 @@ use clap::CommandFactory;
 use clap::Parser;
 
 use yage::cli;
-use yage::decrypt;
-use yage::edit;
-use yage::encrypt;
-use yage::env;
+use yage::cmd;
 use yage::error;
-use yage::keygen;
-use yage::pubkey;
 
 fn run() -> error::Result<()> {
     let cli = cli::Cli::parse();
@@ -26,13 +21,13 @@ fn run() -> error::Result<()> {
         return Ok(());
     }
 
-    match cli.command {
-        cli::Commands::Keygen(ref args) => keygen::keygen(args)?,
-        cli::Commands::Pubkey(ref args) => pubkey::pubkey(args)?,
-        cli::Commands::Edit(ref args) => edit::edit(args)?,
-        cli::Commands::Encrypt(ref args) => encrypt::encrypt(args)?,
-        cli::Commands::Decrypt(ref args) => decrypt::decrypt(args)?,
-        cli::Commands::Env(ref args) => env::env(args)?,
+    match &cli.command {
+        cli::Commands::Keygen(args) => cmd::keygen(args)?,
+        cli::Commands::Pubkey(args) => cmd::pubkey(args)?,
+        cli::Commands::Edit(args) => cmd::edit(args)?,
+        cli::Commands::Encrypt(args) => cmd::encrypt(args)?,
+        cli::Commands::Decrypt(args) => cmd::decrypt(args)?,
+        cli::Commands::Env(args) => cmd::env(args)?,
     }
 
     Ok(())

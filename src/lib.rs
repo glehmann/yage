@@ -2,13 +2,22 @@
 extern crate log;
 
 pub mod cli;
-pub mod decrypt;
-pub mod edit;
-pub mod encrypt;
-pub mod env;
 pub mod error;
-pub mod keygen;
-pub mod pubkey;
+
+pub mod cmd {
+    mod decrypt;
+    mod edit;
+    mod encrypt;
+    mod env;
+    mod keygen;
+    mod pubkey;
+    pub use decrypt::decrypt;
+    pub use edit::edit;
+    pub use encrypt::encrypt;
+    pub use env::env;
+    pub use keygen::keygen;
+    pub use pubkey::pubkey;
+}
 
 use std::fs::{File, OpenOptions};
 use std::io::{stdin, stdout, BufRead, BufReader, Read, Write};
