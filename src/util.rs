@@ -1,5 +1,7 @@
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::{stdin, stdout, BufRead, BufReader, Read, Write};
+#[cfg(unix)]
+use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -16,6 +18,18 @@ pub fn stdout_or_file(path: &Path) -> Result<Box<dyn Write>> {
         Box::new(stdout())
     } else {
         Box::new(File::create(path).path_ctx(path)?)
+    })
+}
+
+pub fn stdout_or_private_file(path: &Path) -> Result<Box<dyn Write>> {
+    Ok(if path == Path::new("-") {
+        Box::new(stdout())
+    } else {
+        let mut file_opts = OpenOptions::new();
+        file_opts.write(true).create_new(true);
+        #[cfg(unix)]
+        file_opts.mode(0o600);
+        Box::new(file_opts.open(path).path_ctx(path)?)
     })
 }
 
