@@ -55,12 +55,16 @@ pub fn stdout_or_private_file(path: &Path) -> Result<Box<dyn Write>> {
         if let Err(e) = fs_mistrust::Mistrust::new().check_directory(dir) {
             warn!("directory {dir:?} is not private: {e}");
         }
-        let mut file_opts = OpenOptions::new();
-        file_opts.write(true).create_new(true);
-        #[cfg(unix)]
-        file_opts.mode(0o600);
-        Box::new(file_opts.open(path).path_ctx(path)?)
+        Box::new(create_private_file(path)?)
     })
+}
+
+pub fn create_private_file(path: &Path) -> Result<File> {
+    let mut file_opts = OpenOptions::new();
+    file_opts.write(true).create_new(true);
+    #[cfg(unix)]
+    file_opts.mode(0o600);
+    file_opts.open(path).path_ctx(path)
 }
 
 pub fn stdin_or_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {

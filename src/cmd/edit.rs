@@ -8,7 +8,7 @@ use treediff::Mutable;
 
 use crate::cli::EditArgs;
 use crate::error::{IOResultExt, Result, YageError};
-use crate::{decrypt_yaml, encrypt_yaml, load_identities, load_recipients};
+use crate::{create_private_file, decrypt_yaml, encrypt_yaml, load_identities, load_recipients};
 
 pub fn edit(args: &EditArgs) -> Result<()> {
     let identities = load_identities(&args.keys, &args.key_files)?;
@@ -29,7 +29,7 @@ pub fn edit(args: &EditArgs) -> Result<()> {
     })?;
     let temp_file = dir.path().join(filename);
     {
-        let output = File::create(&temp_file).path_ctx(&temp_file)?;
+        let output = create_private_file(&temp_file)?;
         sy::to_writer(output, &previous_data)?;
     }
     // open the editor
