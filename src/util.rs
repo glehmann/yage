@@ -8,6 +8,7 @@ use std::str::FromStr;
 
 use age::x25519;
 use base64::prelude::*;
+use path_absolutize::Absolutize;
 use serde_yaml as sy;
 use substring::Substring;
 
@@ -25,6 +26,14 @@ pub fn stdout_or_private_file(path: &Path) -> Result<Box<dyn Write>> {
     Ok(if path == Path::new("-") {
         Box::new(stdout())
     } else {
+        // make sure the directory is private
+        let real_path = path.absolutize().path_ctx(path)?;
+        let dir = real_path.parent().ok_or(YageError::InvalidFileName {
+            path: path.to_owned(),
+        })?;
+        if let Err(e) = fs_mistrust::Mistrust::new().check_directory(dir) {
+            warn!("directory {dir:?} is not private: {e}");
+        }
         let mut file_opts = OpenOptions::new();
         file_opts.write(true).create_new(true);
         #[cfg(unix)]
@@ -37,6 +46,21 @@ pub fn stdin_or_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
     Ok(if path == Path::new("-") {
         BufReader::new(Box::new(stdin()))
     } else {
+        BufReader::new(Box::new(File::open(path).path_ctx(path)?))
+    })
+}
+
+pub fn stdin_or_private_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
+    Ok(if path == Path::new("-") {
+        BufReader::new(Box::new(stdin()))
+    } else {
+        if let Err(e) = fs_mistrust::Mistrust::new()
+            .verifier()
+            .require_file()
+            .check(path)
+        {
+            warn!("file {path:?} is not private: {e}");
+        }
         BufReader::new(Box::new(File::open(path).path_ctx(path)?))
     })
 }
@@ -101,7 +125,7 @@ pub fn load_identities(keys: &[String], key_files: &[PathBuf]) -> Result<Vec<x25
     }
     for key_file in key_files.iter() {
         debug!("loading key file: {key_file:?}");
-        let input = stdin_or_file(key_file)?;
+        let input = stdin_or_private_file(key_file)?;
         let keys = age::IdentityFile::from_buffer(input).path_ctx(key_file)?;
         for key in keys.into_identities() {
             let age::IdentityFileEntry::Native(key) = key;
