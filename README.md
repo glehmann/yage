@@ -236,7 +236,7 @@ repos:
     hooks:
       - id: yage-encrypt
         files: "secrets-prod-.+\\.yaml"
-        args: ["-R", "prod.pub"]
+        args: ["--in-place", "--recipient-file=prod.pub"]
 ```
 
 `yage-detect` and `yage-encrypt` require `yage` to be installed in the environment where the hook is
