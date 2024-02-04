@@ -29,7 +29,6 @@ use std::str::FromStr;
 
 use age::x25519;
 use base64::prelude::*;
-use path_absolutize::Absolutize;
 use serde_yaml as sy;
 use substring::Substring;
 
@@ -47,14 +46,6 @@ pub fn stdout_or_private_file(path: &Path) -> Result<Box<dyn Write>> {
     Ok(if path == Path::new("-") {
         Box::new(stdout())
     } else {
-        // make sure the directory is private
-        let real_path = path.absolutize().path_ctx(path)?;
-        let dir = real_path.parent().ok_or(YageError::InvalidFileName {
-            path: path.to_owned(),
-        })?;
-        if let Err(e) = fs_mistrust::Mistrust::new().check_directory(dir) {
-            warn!("directory {dir:?} is not private: {e}");
-        }
         Box::new(create_private_file(path)?)
     })
 }
