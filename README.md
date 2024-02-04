@@ -211,7 +211,7 @@ $ yage run -K prod.key secrets.yaml env terraform apply
 
 ## Pre-commit hook
 
-`yage` can be used in a pre-commit hook to make sure that the secrets are always encrypted before
+`yage` can be used in a [pre-commit hook](https://pre-commit.com/) to make sure that the secrets are always encrypted before
 committing them to the repository. Here is an example of a `.pre-commit-config.yaml` file that
 uses `yage` to detect the non-encrypted secrets in a YAML file before committing them:
 
@@ -238,6 +238,11 @@ repos:
         files: "secrets-prod-.+\\.yaml"
         args: ["-R", "prod.pub"]
 ```
+
+`yage-detect` and `yage-encrypt` require `yage` to be installed in the environment where the hook is
+running. The `yage-detect-rust` and `yage-encrypt-rust` hooks are other available variants that
+build yage from source. Some docker based hooks will be available in the future to make easier to use
+`yage` in a pre-commit hook.
 
 ## Why?
 
