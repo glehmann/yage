@@ -2,7 +2,7 @@ use serde_yaml as sy;
 
 use crate::cli::EncryptArgs;
 use crate::error::Result;
-use crate::util::{encrypt_yaml, load_recipients, stdin_or_file, stdout_or_file};
+use crate::{encrypt_yaml, load_recipients, stdin_or_file, stdout_or_file};
 
 pub fn encrypt(args: &EncryptArgs) -> Result<()> {
     let recipients = load_recipients(&args.recipients, &args.recipient_files)?;

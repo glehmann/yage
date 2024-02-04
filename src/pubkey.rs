@@ -1,6 +1,6 @@
 use crate::cli::PubkeyArgs;
 use crate::error::{IOResultExt, Result};
-use crate::util::{load_identities, stdout_or_file};
+use crate::{load_identities, stdout_or_file};
 
 pub fn pubkey(args: &PubkeyArgs) -> Result<()> {
     let keys = load_identities(&args.keys, &args.key_files)?;

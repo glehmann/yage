@@ -5,7 +5,7 @@ use serde_yaml as sy;
 
 use crate::cli::EnvArgs;
 use crate::error::{Result, YageError};
-use crate::util::{decrypt_yaml, load_identities, stdin_or_file};
+use crate::{decrypt_yaml, load_identities, stdin_or_file};
 
 pub fn env(args: &EnvArgs) -> Result<()> {
     let identities = load_identities(&args.keys, &args.key_files)?;

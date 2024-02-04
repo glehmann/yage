@@ -8,7 +8,7 @@ use treediff::Mutable;
 
 use crate::cli::EditArgs;
 use crate::error::{IOResultExt, Result, YageError};
-use crate::util::{decrypt_yaml, encrypt_yaml, load_identities, load_recipients};
+use crate::{decrypt_yaml, encrypt_yaml, load_identities, load_recipients};
 
 pub fn edit(args: &EditArgs) -> Result<()> {
     let identities = load_identities(&args.keys, &args.key_files)?;
