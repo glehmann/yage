@@ -95,7 +95,7 @@ $ yage --completion fish > ~/.config/fish/completions/yage.fish
 First generate a new age key pair:
 
 ```sh
-$ yage keygen -o prod.key
+$ yage keygen -o prod.key -p prod.pub
 Public key: age15eesfkh778yljxzgwdq5vaqmmchg5py480vplsymzzqf0dwe5gnqrexdq6
 ```
 
@@ -112,7 +112,6 @@ AGE-SECRET-KEY-1EZEU9RUTW3K5GV98ER6RHMS73QJNQ37ARWG6MWHXM4JP8FVD3A9QK2DD70
 The public key could be committed to a git repository:
 
 ```sh
-$ yage pubkey -K prod.key -o prod.pub
 $ git add prod.pub
 $ git commit -m "Add prod public key"
 ```

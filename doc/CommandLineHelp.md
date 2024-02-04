@@ -160,6 +160,7 @@ The key is written in the age format, which is compatible with the age tool.
 * `-o`, `--output <OUTPUT>` — The output path to the private key file
 
   Default value: `-`
+* `-p`, `--public <PUBLIC>` — The output path to the public key file
 
 
 

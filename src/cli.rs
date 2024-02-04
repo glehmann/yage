@@ -41,6 +41,10 @@ pub struct KeygenArgs {
     /// The private key is written to the standard output by default.
     #[clap(short, long, default_value = "-")]
     pub output: PathBuf,
+
+    /// The output path to the public key file
+    #[clap(short, long)]
+    pub public: Option<PathBuf>,
 }
 
 /// Convert private age keys to their public key
