@@ -244,40 +244,13 @@ pub enum EncryptionStatus {
     Encrypted,
     NotEncrypted,
     Mixed,
+    NoValue,
 }
 
 pub fn check_encrypted(value: &sy::Value) -> EncryptionStatus {
     match value {
-        sy::Value::Mapping(mapping) => {
-            if mapping
-                .iter()
-                .all(|(_, value)| check_encrypted(value) == EncryptionStatus::Encrypted)
-            {
-                EncryptionStatus::Encrypted
-            } else if mapping
-                .iter()
-                .any(|(_, value)| check_encrypted(value) != EncryptionStatus::NotEncrypted)
-            {
-                EncryptionStatus::Mixed
-            } else {
-                EncryptionStatus::NotEncrypted
-            }
-        }
-        sy::Value::Sequence(sequence) => {
-            if sequence
-                .iter()
-                .all(|value| check_encrypted(value) == EncryptionStatus::Encrypted)
-            {
-                EncryptionStatus::Encrypted
-            } else if sequence
-                .iter()
-                .any(|value| check_encrypted(value) != EncryptionStatus::NotEncrypted)
-            {
-                EncryptionStatus::Mixed
-            } else {
-                EncryptionStatus::NotEncrypted
-            }
-        }
+        sy::Value::Mapping(mapping) => check_encrypted_iter(mapping.iter().map(|(_, v)| v)),
+        sy::Value::Sequence(sequence) => check_encrypted_iter(sequence.iter()),
         sy::Value::String(s) => {
             if is_yage_encoded(s) {
                 EncryptionStatus::Encrypted
@@ -287,4 +260,33 @@ pub fn check_encrypted(value: &sy::Value) -> EncryptionStatus {
         }
         _ => EncryptionStatus::NotEncrypted,
     }
+}
+
+fn check_encrypted_iter<'a>(iter: impl Iterator<Item = &'a sy::Value>) -> EncryptionStatus {
+    let mut status = EncryptionStatus::NoValue;
+    for value in iter {
+        match check_encrypted(value) {
+            EncryptionStatus::Encrypted => {
+                status = match status {
+                    EncryptionStatus::Encrypted => EncryptionStatus::Encrypted,
+                    EncryptionStatus::NotEncrypted => EncryptionStatus::Mixed,
+                    EncryptionStatus::Mixed => EncryptionStatus::Mixed,
+                    EncryptionStatus::NoValue => EncryptionStatus::Encrypted,
+                }
+            }
+            EncryptionStatus::NotEncrypted => {
+                status = match status {
+                    EncryptionStatus::Encrypted => EncryptionStatus::Mixed,
+                    EncryptionStatus::NotEncrypted => EncryptionStatus::NotEncrypted,
+                    EncryptionStatus::Mixed => EncryptionStatus::Mixed,
+                    EncryptionStatus::NoValue => EncryptionStatus::NotEncrypted,
+                }
+            }
+            EncryptionStatus::Mixed => {
+                status = EncryptionStatus::Mixed;
+            }
+            EncryptionStatus::NoValue => (),
+        }
+    }
+    status
 }

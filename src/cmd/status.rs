@@ -10,7 +10,7 @@ pub fn status(args: &StatusArgs) -> Result<i32> {
         debug!("loading yaml file: {file:?}");
         let input_data: sy::Value = sy::from_reader(stdin_or_file(file)?)?;
         match check_encrypted(&input_data) {
-            EncryptionStatus::Encrypted => (),
+            EncryptionStatus::Encrypted | EncryptionStatus::NoValue => (),
             EncryptionStatus::Mixed => {
                 error! {"{file:?} is partially encrypted"};
                 is_encrypted = false;
