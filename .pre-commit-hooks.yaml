@@ -1,0 +1,10 @@
+- id: yage-rust
+  name: Detect non-encrypted secrets
+  description: Detect non-encrypted secrets using yage
+  entry: yage status
+  language: rust
+- id: yage
+  name: Detect non-encrypted secrets
+  description: Detect non-encrypted secrets using yage
+  entry: yage status
+  language: system
