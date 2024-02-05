@@ -24,7 +24,9 @@ cross:
     LOCALLY
     ARG --required platform_slug
     ARG --required target
-    RUN cross build --target $target --release  \
+    RUN rm -rf target/release \
+        && cross build --target $target --release  \
+        && mkdir -p bin \
         && cp target/$target/release/yage bin/yage-$platform_slug
 
 cross-dind:
@@ -78,8 +80,9 @@ docker:
     ARG build=earthly
     COPY (+artifact/yage --build=$build) /yage
     ENTRYPOINT ["/yage"]
-    ARG tag=latest
-    SAVE IMAGE --push glehmann/yage:$tag
+    ARG tag=main
+    # SAVE IMAGE --push glehmann/yage:$tag
+    SAVE IMAGE --push ghcr.io/glehmann/yage:$tag
 
 docker-multiplatform:
     ARG build=earthly
@@ -90,5 +93,5 @@ docker-multiplatform:
         --platform=linux/arm/v7 \
         --platform=linux/arm/v6 \
         --platform=linux/ppc64le \
-        --platform=linux/s390x \
+        # --platform=linux/s390x \
         +docker --build=$build
