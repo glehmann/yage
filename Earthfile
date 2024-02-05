@@ -71,3 +71,15 @@ docker:
     ENTRYPOINT ["/yage"]
     ARG tag=latest
     SAVE IMAGE --push glehmann/yage:$tag
+
+docker-multiplatform:
+    ARG build=earthly
+    BUILD \
+        --platform=linux/amd64 \
+        --platform=linux/arm64 \
+        --platform=linux/386 \
+        --platform=linux/arm/v7 \
+        --platform=linux/arm/v6 \
+        --platform=linux/ppc64le \
+        --platform=linux/s390x \
+        +docker --build=$build
