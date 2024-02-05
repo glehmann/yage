@@ -1,29 +1,16 @@
-VERSION 0.7
+VERSION --global-cache 0.7
+IMPORT github.com/earthly/lib/rust AS rust
 
 rust:
     FROM rust:alpine
-    RUN apk add --no-cache musl-dev
-    WORKDIR app
-    RUN --mount=type=cache,target=/root/.cargo \
-        cargo install cargo-chef
-
-planner:
-    FROM +rust
-    COPY . ./
-    RUN --mount=type=cache,target=/root/.cargo \
-        cargo chef prepare --recipe-path recipe.json
-    SAVE ARTIFACT recipe.json
-
-deps:
-    FROM +rust
-    COPY +planner/recipe.json recipe.json
-    RUN cargo chef cook --release --recipe-path recipe.json
+    RUN apk add --no-cache musl-dev findutils
+    DO rust+INIT --keep_fingerprints=true
+    DO rust+SET_CACHE_MOUNTS_ENV
 
 build:
-    FROM +deps
-    COPY . ./
-    RUN --mount=type=cache,target=/root/.cargo \
-        cargo build --release
+    FROM +rust
+    COPY --keep-ts . ./
+    DO rust+CARGO --args="build --release" --output="release/[^/\.]+"
     SAVE ARTIFACT target/release/yage
 
 prebuilt:
@@ -39,6 +26,22 @@ cross:
     ARG --required target
     RUN cross build --target $target --release  \
         && cp target/$target/release/yage bin/yage-$platform_slug
+
+cross-dind:
+    FROM rust:alpine
+    RUN apk add --no-cache musl-dev findutils
+    DO rust+INIT --keep_fingerprints=true
+    DO rust+SET_CACHE_MOUNTS_ENV
+    DO rust+CARGO --args="install cross"
+    RUN apk add docker jq
+    ARG --required target
+    COPY --keep-ts . ./
+    WITH DOCKER
+        RUN --mount=$EARTHLY_RUST_CARGO_HOME_CACHE \
+            --mount=$EARTHLY_RUST_TARGET_CACHE \
+            cross build --target $target --release
+    END
+    DO rust+COPY_OUTPUT --output="[^\./]+/release/[^\./]+"
 
 artifact:
     FROM alpine
@@ -58,6 +61,12 @@ artifact:
     ELSE IF [ "$build" = "cross" ]
         WAIT
             BUILD +cross --platform_slug=$platform_slug --target=$target
+        END
+        COPY bin/yage-$platform_slug /yage
+    ELSE IF [ "$build" = "cross-dind" ]
+        WAIT
+            ARG NATIVEPLATFORM
+            BUILD --platform $NATIVEPLATFORM +cross --target=$target
         END
         COPY bin/yage-$platform_slug /yage
     END
