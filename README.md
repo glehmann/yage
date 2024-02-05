@@ -191,6 +191,13 @@ $ yage decrypt -iK prod.key secrets.yaml
 If your decrypting in a CI/CD pipeline, you may find convenient to put the private key in the
 `YAGE_KEY` environment variable. This way you can just use `yage decrypt -i secrets.yaml`.
 
+You may also find convenient to pass the private key on the standard input, for example to avoid
+storing the private key on disk:
+
+```sh
+$ vault-get-key | yage decrypt --key-file - secrets.yaml
+```
+
 If you have the private key, you can edit the file in place with your favorite text editor
 configured in the `EDITOR` environment variable:
 
