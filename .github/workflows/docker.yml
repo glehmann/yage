@@ -12,6 +12,9 @@ jobs:
   docker:
     name: docker
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     env:
       CROSS_VERSION: v0.2.5
     steps:
