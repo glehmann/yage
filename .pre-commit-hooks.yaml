@@ -24,10 +24,10 @@
 - id: yage-detect-docker
   name: Detect non-encrypted secrets
   description: Detect non-encrypted secrets using yage
-  entry: ghcr.io/glehmann/yage:main /yage status
+  entry: ghcr.io/glehmann/yage:main status
   language: docker_image
 - id: yage-encrypt-docker
   name: Encrypt secrets
   description: Encrypt secrets using yage
-  entry: ghcr.io/glehmann/yage:main /yage encrypt
+  entry: ghcr.io/glehmann/yage:main encrypt
   language: docker_image
