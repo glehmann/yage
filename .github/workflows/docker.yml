@@ -48,3 +48,10 @@ jobs:
 
       - name: Build and push the images
         run: earthly --allow-privileged --push --no-output +docker-multiplatform --tag=${{ github.ref_name }}
+
+      - name: Check the uploaded images
+        run: |
+          set -ex
+          for platform in linux/amd64 linux/arm64 linux/386 linux/arm/v7 linux/arm/v6 linux/ppc64le linux/s390x; do
+            docker run --rm --platform ${platform} ghcr.io/glehmann/yage:${{ github.ref_name }} --help
+          done
