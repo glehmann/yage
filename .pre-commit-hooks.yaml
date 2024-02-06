@@ -1,8 +1,15 @@
+# rust hooks
 - id: yage-detect-rust
   name: Detect non-encrypted secrets
   description: Detect non-encrypted secrets using yage
   entry: yage status
   language: rust
+- id: yage-encrypt
+  name: Encrypt secrets
+  description: Encrypt secrets using yage
+  entry: yage encrypt
+  language: rust
+# system hooks
 - id: yage-detect
   name: Detect non-encrypted secrets
   description: Detect non-encrypted secrets using yage
@@ -10,11 +17,17 @@
   language: system
 - id: yage-encrypt
   name: Encrypt secrets
-  description: Secrets secrets using yage
-  entry: yage status
-  language: rust
+  description: Encrypt secrets using yage
+  entry: yage encrypt
+  language: system
+# docker hooks
+- id: yage-detect
+  name: Detect non-encrypted secrets
+  description: Detect non-encrypted secrets using yage
+  entry: ghcr.io/glehmann/yage:main /yage status
+  language: docker_image
 - id: yage-encrypt
   name: Encrypt secrets
-  description: Secrets secrets using yage
-  entry: yage status
-  language: system
+  description: Encrypt secrets using yage
+  entry: ghcr.io/glehmann/yage:main /yage encrypt
+  language: docker_image
