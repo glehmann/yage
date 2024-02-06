@@ -30,20 +30,6 @@ jobs:
           image: tonistiigi/binfmt:latest
           platforms: all
 
-      - name: Use Cross
-        shell: bash
-        run: |
-          # In the past, new releases of 'cross' have broken CI. So for now, we
-          # pin it. We also use their pre-compiled binary releases because cross
-          # has over 100 dependencies and takes a bit to compile.
-          dir="$RUNNER_TEMP/cross-download"
-          mkdir "$dir"
-          echo "$dir" >> $GITHUB_PATH
-          cd "$dir"
-          curl -LO "https://github.com/cross-rs/cross/releases/download/$CROSS_VERSION/cross-x86_64-unknown-linux-musl.tar.gz"
-          tar xf cross-x86_64-unknown-linux-musl.tar.gz
-          echo "CARGO=cross" >> $GITHUB_ENV
-
       - name: Install earthly
         uses: earthly/actions-setup@v1.0.4
         with:
@@ -58,4 +44,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push the images
-        run: earthly --push --no-output +docker-multiplatform --build=cross --tag=${{ github.ref_name }}
+        run: earthly --push --no-output +docker-multiplatform --tag=${{ github.ref_name }}
