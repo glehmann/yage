@@ -1,4 +1,4 @@
-VERSION --global-cache 0.7
+VERSION --global-cache 0.8
 IMPORT github.com/earthly/lib/rust AS rust
 
 ARG --global CROSS_VERSION=0.2.5
@@ -14,14 +14,28 @@ cross-deps:
     # DO rust+CARGO --args="install cross@${CROSS_VERSION}"
     RUN wget -O- "https://github.com/cross-rs/cross/releases/download/v${CROSS_VERSION}/cross-x86_64-unknown-linux-musl.tar.gz" | tar -xzf - -C /usr/local/bin
     DO rust+SET_CACHE_MOUNTS_ENV
-    COPY docker/target.sh /
     COPY --keep-ts . ./
     DO rust+CARGO --args="fetch"
 
 cross:
     FROM +cross-deps
     ARG TARGETPLATFORM
-    ARG target=$(/target.sh $TARGETPLATFORM)
+    LET target="unsupported platform"
+    IF [ "$TARGETPLATFORM" = "linux/amd64" ]
+        SET target="x86_64-unknown-linux-musl"
+    ELSE IF [ "$TARGETPLATFORM" = "linux/arm64" ]
+        SET target="aarch64-unknown-linux-musl"
+    ELSE IF [ "$TARGETPLATFORM" = "linux/386" ]
+        SET target="i686-unknown-linux-musl"
+    ELSE IF [ "$TARGETPLATFORM" = "linux/arm/v7" ]
+        SET target="armv7-unknown-linux-musleabihf"
+    ELSE IF [ "$TARGETPLATFORM" = "linux/arm/v6" ]
+        SET target="arm-unknown-linux-musleabihf"
+    ELSE IF [ "$TARGETPLATFORM" = "linux/ppc64le" ]
+        SET target="powerpc64le-unknown-linux-gnu"
+    ELSE IF [ "$TARGETPLATFORM" = "linux/s390x" ]
+        SET target="s390x-unknown-linux-gnu"
+    END
     # RUN rustup target add $target
     WITH DOCKER --pull ghcr.io/cross-rs/$target:$CROSS_VERSION
         RUN --mount=$EARTHLY_RUST_CARGO_HOME_CACHE \
@@ -45,13 +59,19 @@ docker-build:
     # SAVE IMAGE --push glehmann/yage:$tag
     SAVE IMAGE --push ghcr.io/glehmann/yage:$tag
 
+# we need a shell in the image in order to run a IF, so we run the IF
+# in that image and delegate the actual image creation to docker-build
+# with the FROM value as argument
 docker:
     FROM alpine
     ARG TARGETPLATFORM
-    COPY docker/from.sh /
-    ARG from=$(/from.sh $TARGETPLATFORM)
     ARG tag=main
-    BUILD +docker-build --from=$from --tag=main
+    IF [ "$TARGETPLATFORM" = "linux/s390x" ] || [ "$TARGETPLATFORM" = "linux/ppc64le" ]
+        # these platform are not statically linked, they can't run in a scratch image
+        BUILD +docker-build --from=debian:12-slim --tag=$tag
+    ELSE
+        BUILD +docker-build --from=scratch --tag=$tag
+    END
 
 docker-multiplatform:
     ARG tag=main
