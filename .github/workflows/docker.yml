@@ -44,4 +44,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push the images
-        run: earthly --push --no-output +docker-multiplatform --tag=${{ github.ref_name }}
+        run: earthly --allow-privileged --push --no-output +docker-multiplatform --tag=${{ github.ref_name }}
