@@ -12,7 +12,7 @@ cross-deps:
     WORKDIR /app
     DO rust+INIT --keep_fingerprints=true
     # DO rust+CARGO --args="install cross@${CROSS_VERSION}"
-    RUN wget -O- "https://github.com/cross-rs/cross/releases/download/v${CROSS_VERSION}/cross-x86_64-unknown-linux-musl.tar.gz" | tar -xzf - -C /usr/local/bin
+    RUN wget -nv -O- "https://github.com/cross-rs/cross/releases/download/v${CROSS_VERSION}/cross-x86_64-unknown-linux-musl.tar.gz" | tar -xzf - -C /usr/local/bin
     DO rust+SET_CACHE_MOUNTS_ENV
     COPY --keep-ts . ./
     DO rust+CARGO --args="fetch"
