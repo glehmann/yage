@@ -56,6 +56,12 @@ docker-build:
     # RUN ["/yage", "--help"]
     ENTRYPOINT ["/yage"]
     ARG tag=main
+    LABEL org.opencontainers.image.vendor="Gaëtan Lehmann" \
+        org.opencontainers.image.url="https://github.com/glehmann/yage" \
+        org.opencontainers.image.title="yage" \
+        org.opencontainers.image.description="A simple tool to manage encrypted secrets in YAML files with age encryption." \
+        org.opencontainers.image.version="${tag}" \
+        org.opencontainers.image.documentation="https://github.com/glehmann/yage"
     # SAVE IMAGE --push glehmann/yage:$tag
     SAVE IMAGE --push ghcr.io/glehmann/yage:$tag
 
