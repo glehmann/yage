@@ -246,10 +246,15 @@ repos:
         args: ["--in-place", "--recipient-file=prod.pub"]
 ```
 
-`yage-detect` and `yage-encrypt` require `yage` to be installed in the environment where the hook is
-running. The `yage-detect-rust` and `yage-encrypt-rust` hooks are other available variants that
-build yage from source. Some docker based hooks will be available in the future to make easier to use
-`yage` in a pre-commit hook.
+`yage-detect` and `yage-encrypt` hooks require the `yage` binary to be installed in the environment where the hook is
+running.
+
+The `yage-detect-rust` and `yage-encrypt-rust` hooks are other available variants that
+build yage from source.
+
+If you're already using docker in your project, the easiest alternatives are the `yage-detect-docker` and
+`yage-encrypt-docker` hooks. They only require docker to be installed in the environment where the hook is running.
+The `yage` image is downloaded automatically when the hook is run for the first time.
 
 ## Why?
 
