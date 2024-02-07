@@ -56,59 +56,76 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - build: pinned
-          os: ubuntu-latest
-          rust: 1.74.0
-        - build: stable
-          os: ubuntu-latest
-          rust: stable
-        - build: beta
-          os: ubuntu-latest
-          rust: beta
-        - build: nightly
-          os: ubuntu-latest
-          rust: nightly
-        - build: stable-musl
-          os: ubuntu-latest
-          rust: stable
-          target: x86_64-unknown-linux-musl
-        - build: stable-x86
-          os: ubuntu-latest
-          rust: stable
-          target: i686-unknown-linux-gnu
-        - build: stable-aarch64
-          os: ubuntu-latest
-          rust: stable
-          target: aarch64-unknown-linux-gnu
-        - build: stable-arm-gnueabihf
-          os: ubuntu-latest
-          rust: stable
-          target: armv7-unknown-linux-gnueabihf
-        - build: stable-arm-musleabihf
-          os: ubuntu-latest
-          rust: stable
-          target: armv7-unknown-linux-musleabihf
-        - build: stable-arm-musleabi
-          os: ubuntu-latest
-          rust: stable
-          target: armv7-unknown-linux-musleabi
-        - build: stable-powerpc64
-          os: ubuntu-latest
-          rust: stable
-          target: powerpc64-unknown-linux-gnu
-        - build: stable-s390x
-          os: ubuntu-latest
-          rust: stable
-          target: s390x-unknown-linux-gnu
-        - build: macos
-          os: macos-latest
-          rust: nightly
-        - build: win-msvc
-          os: windows-2022
-          rust: nightly
-        - build: win-gnu
-          os: windows-2022
-          rust: nightly-x86_64-gnu
+          # rust channels
+          - build: stable
+            os: ubuntu-latest
+            rust: stable
+          - build: beta
+            os: ubuntu-latest
+            rust: beta
+          - build: nightly
+            os: ubuntu-latest
+            rust: nightly
+
+          # release platforms
+          # same targets as in release.yml, all the linux targets from docker.yml
+          - build: linux-amd64
+            os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-musl
+          - build: linux-i686
+            os: ubuntu-latest
+            rust: stable
+            target: i686-unknown-linux-musl
+          - build: linux-arm64
+            os: ubuntu-latest
+            rust: stable
+            target: aarch64-unknown-linux-musl
+          - build: linux-arm
+            os: ubuntu-latest
+            rust: stable
+            target: arm-unknown-linux-musleabihf
+          - build: linux-ppc64le
+            os: ubuntu-latest
+            rust: stable
+            target: powerpc64le-unknown-linux-gnu
+          - build: stable-s390x
+            os: ubuntu-latest
+            rust: stable
+            target: s390x-unknown-linux-gnu
+          - build: macos-amd64
+            os: macos-latest
+            rust: stable
+            target: x86_64-apple-darwin
+          - build: windows-amd64
+            os: windows-latest
+            rust: stable
+            target: x86_64-pc-windows-msvc
+
+          # usual build targets
+          - build: stable-x86
+            os: ubuntu-latest
+            rust: stable
+            target: i686-unknown-linux-gnu
+          - build: stable-aarch64
+            os: ubuntu-latest
+            rust: stable
+            target: aarch64-unknown-linux-gnu
+          - build: stable-arm-gnueabihf
+            os: ubuntu-latest
+            rust: stable
+            target: armv7-unknown-linux-gnueabihf
+          - build: stable-arm-musleabihf
+            os: ubuntu-latest
+            rust: stable
+            target: armv7-unknown-linux-musleabihf
+          - build: stable-arm-musleabi
+            os: ubuntu-latest
+            rust: stable
+            target: armv7-unknown-linux-musleabi
+          - build: win-gnu
+            os: windows-2022
+            rust: nightly-x86_64-gnu
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4

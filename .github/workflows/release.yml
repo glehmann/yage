@@ -61,70 +61,38 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - build: linux
-          os: ubuntu-latest
-          rust: nightly
-          target: x86_64-unknown-linux-musl
-          strip: x86_64-linux-musl-strip
-        - build: stable-x86
-          os: ubuntu-latest
-          rust: stable
-          target: i686-unknown-linux-gnu
-          strip: x86_64-linux-gnu-strip
-          qemu: i386
-        - build: stable-aarch64
-          os: ubuntu-latest
-          rust: stable
-          target: aarch64-unknown-linux-gnu
-          strip: aarch64-linux-gnu-strip
-          qemu: qemu-aarch64
-        - build: stable-arm-gnueabihf
-          os: ubuntu-latest
-          rust: stable
-          target: armv7-unknown-linux-gnueabihf
-          strip: arm-linux-gnueabihf-strip
-          qemu: qemu-arm
-        - build: stable-arm-musleabihf
-          os: ubuntu-latest
-          rust: stable
-          target: armv7-unknown-linux-musleabihf
-          strip: arm-linux-musleabihf-strip
-          qemu: qemu-arm
-        - build: stable-arm-musleabi
-          os: ubuntu-latest
-          rust: stable
-          target: armv7-unknown-linux-musleabi
-          strip: arm-linux-musleabi-strip
-          qemu: qemu-arm
-        - build: stable-powerpc64
-          os: ubuntu-latest
-          rust: stable
-          target: powerpc64-unknown-linux-gnu
-          strip: powerpc64-linux-gnu-strip
-          qemu: qemu-ppc64
-        - build: stable-s390x
-          os: ubuntu-latest
-          rust: stable
-          target: s390x-unknown-linux-gnu
-          strip: s390x-linux-gnu-strip
-          qemu: qemu-s390x
-        - build: macos
-          os: macos-latest
-          rust: nightly
-          target: x86_64-apple-darwin
-        - build: win-msvc
-          os: windows-latest
-          rust: nightly
-          target: x86_64-pc-windows-msvc
-        - build: win-gnu
-          os: windows-latest
-          rust: nightly-x86_64-gnu
-          target: x86_64-pc-windows-gnu
-        - build: win32-msvc
-          os: windows-latest
-          rust: nightly
-          target: i686-pc-windows-msvc
-
+          - build: linux-amd64
+            os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-musl
+          - build: linux-i686
+            os: ubuntu-latest
+            rust: stable
+            target: i686-unknown-linux-musl
+          - build: linux-arm64
+            os: ubuntu-latest
+            rust: stable
+            target: aarch64-unknown-linux-musl
+          - build: linux-arm
+            os: ubuntu-latest
+            rust: stable
+            target: arm-unknown-linux-musleabihf
+          - build: linux-ppc64le
+            os: ubuntu-latest
+            rust: stable
+            target: powerpc64le-unknown-linux-gnu
+          - build: stable-s390x
+            os: ubuntu-latest
+            rust: stable
+            target: s390x-unknown-linux-gnu
+          - build: macos-amd64
+            os: macos-latest
+            rust: stable
+            target: x86_64-apple-darwin
+          - build: windows-amd64
+            os: windows-latest
+            rust: stable
+            target: x86_64-pc-windows-msvc
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -178,7 +146,7 @@ jobs:
       shell: bash
       run: |
         version="${{ needs.create-release.outputs.version }}"
-        echo "ARCHIVE=yage-$version-${{ matrix.target }}" >> $GITHUB_ENV
+        echo "ARCHIVE=yage-$version-${{ matrix.build }}" >> $GITHUB_ENV
 
     - name: Creating directory for archive
       shell: bash
