@@ -89,6 +89,10 @@ jobs:
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
+          - build: macos-arm64
+            os: macos-14
+            rust: stable
+            target: aarch64-apple-darwin
           - build: windows-amd64
             os: windows-latest
             rust: stable
