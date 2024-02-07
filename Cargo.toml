@@ -37,6 +37,13 @@ clap-verbosity-flag = "2.1.2"
 clap_mangen = "0.2.18"
 clap_complete = "4.4.10"
 
+[dev-dependencies]
+assert_cmd = { git="https://github.com/glehmann/assert_cmd", branch="cross" }
+predicates = "3.1"
+assert_fs = "1.1"
+lipsum = "0.9"
+escargot = "0.5"
+
 [profile.release]
 strip = "symbols"
 opt-level = "z"
