@@ -1,9 +1,7 @@
+use predicates_tree::CaseTreeExt;
+
 pub trait TestPathChild {
     fn mkdir_all(&self) -> std::io::Result<()>;
-}
-
-pub trait TestToString {
-    fn to_string(&self) -> String;
 }
 
 impl TestPathChild for assert_fs::fixture::ChildPath {
@@ -12,24 +10,43 @@ impl TestPathChild for assert_fs::fixture::ChildPath {
     }
 }
 
-impl TestToString for assert_fs::fixture::ChildPath {
-    fn to_string(&self) -> String {
-        self.path().display().to_string()
+pub trait TestString {
+    fn assert(&self, predicate: impl predicates::Predicate<str>) -> &Self;
+}
+
+impl TestString for str {
+    fn assert(&self, predicate: impl predicates::Predicate<str>) -> &Self {
+        if let Some(case) = predicate.find_case(false, self.as_ref()) {
+            panic!("{}", case.tree(),);
+        }
+        self
     }
 }
 
-impl TestToString for assert_fs::TempDir {
-    fn to_string(&self) -> String {
-        self.path().display().to_string()
+impl TestString for String {
+    fn assert(&self, predicate: impl predicates::Predicate<str>) -> &Self {
+        if let Some(case) = predicate.find_case(false, self.as_ref()) {
+            panic!("{}", case.tree(),);
+        }
+        self
     }
 }
 
 #[macro_export]
 macro_rules! yage {
+    () => (
+        Command::cargo_bin("yage").unwrap().assert()
+    );
     ( $( $v:expr ),* ) => (
-        {
-            let temp_vec: Vec<String> = vec![$($v.to_string(),)*];
-            Command::cargo_bin("yage").unwrap().args(&temp_vec).assert()
-        }
+        yage_args!(Command::cargo_bin("yage").unwrap(), $($v),*).assert()
+    );
+}
+
+#[macro_export]
+macro_rules! yage_args {
+    ($x:expr) => ($x);
+    ($x:expr, $y:expr) => ($x.arg($y));
+    ($x:expr, $y:expr, $($z:expr),+) => (
+        yage_args!($x.arg($y), $($z),*)
     );
 }
