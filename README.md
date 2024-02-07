@@ -43,7 +43,26 @@ some interesting use cases:
 
 ## Installation
 
-Only available from source for now. More to come soon!
+### From binaries
+
+Go to the [releases page](https://github.com/glehmann/yage/releases), download the binary for your
+platform, extract it and put the `yage` binary in a directory in your `PATH`.
+
+For example on linux with an intel/amd64 processor, you can run the following commands to install `yage` in `~/.local/bin`:
+
+```sh
+curl -ssL https://github.com/glehmann/yage/releases/download/0.2.0/yage-0.2.0-linux-amd64.tar.gz | tar xzf - -C ~/.local/bin --strip-components=1
+```
+
+### Docker
+
+`yage` is also available as a [docker image](https://github.com/glehmann/yage/pkgs/container/yage).
+
+Here is how you can use it to encrypt a file in place:
+
+~~~sh
+docker run --rm -t -v $(pwd):/src ghcr.io/glehmann/yage:0.2.0 encrypt -iR prod.pub secrets.yaml
+~~~
 
 ### From source
 

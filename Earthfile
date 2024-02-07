@@ -49,7 +49,7 @@ cross:
 docker-build:
     ARG from=scratch
     FROM $from
-    WORKDIR /app
+    WORKDIR /src
     COPY +cross/yage  /yage
     # make sure we have the required dependencies in the image
     # can't do that unfortunately because of https://github.com/earthly/earthly/issues/2618
