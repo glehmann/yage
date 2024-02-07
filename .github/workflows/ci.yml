@@ -97,12 +97,16 @@ jobs:
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
+          - build: macos-arm64
+            os: macos-14
+            rust: stable
+            target: aarch64-apple-darwin
           - build: windows-amd64
             os: windows-latest
             rust: stable
             target: x86_64-pc-windows-msvc
 
-          # usual build targets
+          # other usual build targets
           - build: stable-x86
             os: ubuntu-latest
             rust: stable
@@ -148,8 +152,16 @@ jobs:
         curl -LO "https://github.com/cross-rs/cross/releases/download/$CROSS_VERSION/cross-x86_64-unknown-linux-musl.tar.gz"
         tar xf cross-x86_64-unknown-linux-musl.tar.gz
         echo "CARGO=cross" >> $GITHUB_ENV
+
+    - name: Configure target flags
+      if: matrix.target != ''
+      run: |
         echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
         echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+
+    - name: Install the target
+      if: matrix.os != 'ubuntu-latest' && matrix.target != ''
+      run: rustup target add ${{ matrix.target }}
 
     - name: Show command used for Cargo
       run: |
