@@ -4,6 +4,7 @@ use assert_cmd::prelude::*;
 use predicates::prelude::predicate::str::*;
 use predicates::prelude::*;
 use std::process::Command;
+use std::vec;
 
 #[test]
 fn help() {
@@ -14,6 +15,30 @@ fn help() {
                 .and(is_match(r"status +Check the encryption status of a YAML file").unwrap()),
         )
         .stderr(is_empty());
+}
+
+#[test]
+fn no_args_help() {
+    yage!().failure().stdout(is_empty()).stderr(
+        contains("A simple tool to manage encrypted secrets in YAML")
+            .and(is_match(r"status +Check the encryption status of a YAML file").unwrap()),
+    );
+}
+
+#[test]
+fn help_sub_command() {
+    for sub_command in vec![
+        "decrypt", "edit", "encrypt", "env", "keygen", "pubkey", "status",
+    ] {
+        yage!(sub_command, "--help")
+            .success()
+            .stdout(
+                is_match(r"-v, --verbose...\s+Increase logging verbosity")
+                    .unwrap()
+                    .and(is_match(r"-q, --quiet...\s+Decrease logging verbosity").unwrap()),
+            )
+            .stderr(is_empty());
+    }
 }
 
 #[test]
