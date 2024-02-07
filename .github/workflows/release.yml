@@ -81,7 +81,7 @@ jobs:
             os: ubuntu-latest
             rust: stable
             target: powerpc64le-unknown-linux-gnu
-          - build: stable-s390x
+          - build: linux-s390x
             os: ubuntu-latest
             rust: stable
             target: s390x-unknown-linux-gnu
