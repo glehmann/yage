@@ -23,9 +23,12 @@ fn pubkey_multiple_to_stdout() {
     let (key_path2, pub_path2) = create_key(&tmp);
     let (key_path3, pub_path3) = create_key(&tmp);
     yage!("pubkey", &key_path1, &key_path2, &key_path3)
-        .stdout(contains(read(&pub_path1)))
-        .stdout(contains(read(&pub_path2)))
-        .stdout(contains(read(&pub_path3)))
+        .stdout(contains(format!(
+            "{}{}{}",
+            read(&pub_path1),
+            read(&pub_path2),
+            read(&pub_path3),
+        )))
         .stderr(is_empty());
 }
 
@@ -44,9 +47,8 @@ fn pubkey_to_file() {
 fn pubkey_from_stdin() {
     let tmp = temp_dir();
     let (key_path, pub_path) = create_key(&tmp);
-    let key = read(&key_path);
     yage_cmd!("pubkey", "-")
-        .write_stdin(key)
+        .write_stdin(read(&key_path))
         .assert()
         .success()
         .stdout(is_public_key())
@@ -58,9 +60,58 @@ fn pubkey_from_stdin() {
 fn pubkey_from_option() {
     let tmp = temp_dir();
     let (key_path, pub_path) = create_key(&tmp);
-    let key = read(&key_path);
-    yage!("pubkey", "-k", key.trim())
+    yage!("pubkey", "-k", read(&key_path).trim())
         .stdout(is_public_key())
         .stdout(eq_file(&pub_path))
         .stderr(is_empty());
+}
+
+#[test]
+fn pubkey_from_multiple_options() {
+    let tmp = temp_dir();
+    let (key_path1, pub_path1) = create_key(&tmp);
+    let (key_path2, pub_path2) = create_key(&tmp);
+    let (key_path3, pub_path3) = create_key(&tmp);
+    yage!(
+        "pubkey",
+        "-k",
+        read(&key_path1).trim(),
+        "-k",
+        read(&key_path2).trim(),
+        "-k",
+        read(&key_path3).trim()
+    )
+    .stdout(contains(format!(
+        "{}{}{}",
+        read(&pub_path1),
+        read(&pub_path2),
+        read(&pub_path3),
+    )))
+    .stderr(is_empty());
+}
+
+#[test]
+fn pubkey_from_options_and_files() {
+    let tmp = temp_dir();
+    let (key_path1, pub_path1) = create_key(&tmp);
+    let (key_path2, pub_path2) = create_key(&tmp);
+    let (key_path3, pub_path3) = create_key(&tmp);
+    let (key_path4, pub_path4) = create_key(&tmp);
+    yage!(
+        "pubkey",
+        &key_path1,
+        "-k",
+        read(&key_path2).trim(),
+        "-k",
+        read(&key_path3).trim(),
+        &key_path4
+    )
+    .stdout(contains(format!(
+        "{}{}{}{}",
+        read(&pub_path2),
+        read(&pub_path3),
+        read(&pub_path1),
+        read(&pub_path4),
+    )))
+    .stderr(is_empty());
 }
