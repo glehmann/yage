@@ -7,12 +7,7 @@ use assert_fs::prelude::*;
 // use predicates::prelude::predicate::path::*;
 use predicates::prelude::predicate::str::*;
 // use predicates::prelude::*;
-use std::fs::read_to_string;
 use std::process::Command;
-
-const KEY_PATTERN: &str = r"^AGE-SECRET-KEY-[0-9A-Z]{59}\s*$";
-const PUBKEY_PATTERN: &str = r"^[0-9a-z]{62}\s*$";
-const PUBKEY_INFO_PATTERN: &str = r"^Public key: [0-9a-z]{62}\s+$";
 
 #[test]
 fn keygen_stdout() {
@@ -38,9 +33,7 @@ fn keygen_to_key_file() {
         .success()
         .stdout(is_empty())
         .stderr(is_match(PUBKEY_INFO_PATTERN).unwrap());
-    read_to_string(key_path.path())
-        .unwrap()
-        .assert(is_match(KEY_PATTERN).unwrap());
+    read(&key_path).assert(is_match(KEY_PATTERN).unwrap());
 }
 
 #[test]
@@ -51,7 +44,5 @@ fn keygen_to_public_file() {
         .success()
         .stdout(is_match(KEY_PATTERN).unwrap())
         .stderr(is_match(PUBKEY_INFO_PATTERN).unwrap());
-    read_to_string(public_path.path())
-        .unwrap()
-        .assert(is_match(PUBKEY_PATTERN).unwrap());
+    read(&public_path).assert(is_match(PUBKEY_PATTERN).unwrap());
 }
