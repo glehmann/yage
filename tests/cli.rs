@@ -1,9 +1,8 @@
 mod common;
 
-use assert_cmd::prelude::*;
+use crate::common::*;
 use predicates::prelude::predicate::str::*;
 use predicates::prelude::*;
-use std::process::Command;
 use std::vec;
 
 #[test]
