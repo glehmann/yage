@@ -42,3 +42,30 @@ fn pubkey_to_file() {
         .stderr(is_empty());
     assert_eq!(read(&output_path), read(&pub_path));
 }
+
+#[test]
+fn pubkey_from_stdin() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let key = read(&key_path);
+    yage_cmd!("pubkey", "-")
+        .write_stdin(key)
+        .assert()
+        .success()
+        .stdout(is_public_key())
+        .stdout(eq_file(&pub_path))
+        .stderr(is_empty());
+}
+
+#[test]
+fn pubkey_from_option() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let key = read(&key_path);
+    yage_cmd!("pubkey", "-k", key.trim())
+        .assert()
+        .success()
+        .stdout(is_public_key())
+        .stdout(eq_file(&pub_path))
+        .stderr(is_empty());
+}

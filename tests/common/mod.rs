@@ -43,13 +43,24 @@ impl TestString for String {}
 #[macro_export]
 macro_rules! yage {
     ( $( $v:expr ),* ) => ({
-        use std::process::Command;
-        use assert_cmd::prelude::*;
+        use assert_cmd::Command;
         let mut cmd = Command::cargo_bin("yage").unwrap();
         $(
             cmd.arg($v.to_cmd_arg());
         )*
         cmd.assert()
+    });
+}
+
+#[macro_export]
+macro_rules! yage_cmd {
+    ( $( $v:expr ),* ) => ({
+        use assert_cmd::Command;
+        let mut cmd = Command::cargo_bin("yage").unwrap();
+        $(
+            cmd.arg($v.to_cmd_arg());
+        )*
+        cmd
     });
 }
 
