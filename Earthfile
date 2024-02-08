@@ -74,10 +74,35 @@ docker:
     ARG tag=main
     IF [ "$TARGETPLATFORM" = "linux/s390x" ] || [ "$TARGETPLATFORM" = "linux/ppc64le" ]
         # these platform are not statically linked, they can't run in a scratch image
-        BUILD +docker-build --from=debian:12-slim --tag=$tag
+        BUILD +docker-build --from=+debian-minimal --tag=$tag
     ELSE
         BUILD +docker-build --from=scratch --tag=$tag
     END
+
+debian-deps:
+    FROM debian:12-slim
+    ARG TARGETPLATFORM
+    IF [ "$TARGETPLATFORM" = "linux/ppc64le" ]
+        WORKDIR /lib/powerpc64le-linux-gnu/
+        RUN mkdir -p /deps/lib/powerpc64le-linux-gnu/ /deps/lib64/ \
+            && cp libgcc_s.so.1 /deps/lib/powerpc64le-linux-gnu/ \
+            && cp libpthread.so.0 /deps/lib/powerpc64le-linux-gnu/ \
+            && cp libc.so.6 /deps/lib/powerpc64le-linux-gnu/ \
+            && cp ld64.so.2 /deps/lib64/
+    ELSE IF [ "$TARGETPLATFORM" = "linux/s390x" ]
+        WORKDIR /lib/s390x-linux-gnu/
+        RUN mkdir -p /deps/lib/s390x-linux-gnu/ /deps/lib/ \
+            && cp libgcc_s.so.1 /deps/lib/s390x-linux-gnu/ \
+            && cp libpthread.so.0 /deps/lib/s390x-linux-gnu/ \
+            && cp libc.so.6 /deps/lib/s390x-linux-gnu/ \
+            && cp librt.so.1 /deps/lib/s390x-linux-gnu/ \
+            && cp ld64.so.1 /deps/lib/
+    END
+    SAVE ARTIFACT /deps
+
+debian-minimal:
+    FROM scratch
+    COPY +debian-deps/* /
 
 docker-multiplatform:
     ARG tag=main
