@@ -10,7 +10,6 @@ use predicates::prelude::predicate::str::*;
 #[test]
 fn keygen_stdout() {
     yage!("keygen")
-        .success()
         .stdout(is_private_key())
         .stderr(is_pub_key_info());
 }
@@ -18,7 +17,6 @@ fn keygen_stdout() {
 #[test]
 fn keygen_stdout_quiet() {
     yage!("keygen", "-q")
-        .success()
         .stdout(is_private_key())
         .stderr(is_empty());
 }
@@ -28,7 +26,6 @@ fn keygen_to_key_file() {
     let tmp = temp_dir();
     let key_path = tmp.child("private.key");
     yage!("keygen", "--output", &key_path)
-        .success()
         .stdout(is_empty())
         .stderr(is_pub_key_info());
     read(&key_path).assert(is_private_key());
@@ -39,7 +36,6 @@ fn keygen_to_public_file() {
     let tmp = temp_dir();
     let public_path = tmp.child("private.pub");
     yage!("keygen", "--public", &public_path)
-        .success()
         .stdout(is_private_key())
         .stderr(is_pub_key_info());
     read(&public_path).assert(is_public_key());

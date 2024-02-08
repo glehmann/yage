@@ -8,7 +8,6 @@ use std::vec;
 #[test]
 fn help() {
     yage!("--help")
-        .success()
         .stdout(
             contains("A simple tool to manage encrypted secrets in YAML")
                 .and(is_match(r"status +Check the encryption status of a YAML file").unwrap()),
@@ -18,7 +17,7 @@ fn help() {
 
 #[test]
 fn no_args_help() {
-    yage!().failure().stdout(is_empty()).stderr(
+    yage_cmd!().assert().failure().stdout(is_empty()).stderr(
         contains("A simple tool to manage encrypted secrets in YAML")
             .and(is_match(r"status +Check the encryption status of a YAML file").unwrap()),
     );
@@ -30,7 +29,6 @@ fn help_sub_command() {
         "decrypt", "edit", "encrypt", "env", "keygen", "pubkey", "status",
     ] {
         yage!(sub_command, "--help")
-            .success()
             .stdout(
                 is_match(r"-v, --verbose...\s+Increase logging verbosity")
                     .unwrap()
@@ -43,25 +41,27 @@ fn help_sub_command() {
 #[test]
 fn version() {
     yage!("--version")
-        .success()
         .stdout(is_match(r"^yage \d+\.\d+\.\d+\n$").unwrap())
         .stderr(is_empty());
 }
 
 #[test]
 fn bad_option() {
-    yage!("--foo").failure().stdout(is_empty()).stderr(
-        is_match(r"^error: .+ '--foo'")
-            .unwrap()
-            .and(contains("Usage:")),
-    );
+    yage_cmd!("--foo")
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(
+            is_match(r"^error: .+ '--foo'")
+                .unwrap()
+                .and(contains("Usage:")),
+        );
 }
 
 #[test]
 fn completion() {
     for shell in &["bash", "fish", "zsh"] {
         yage!("--completion", shell)
-            .success()
             .stdout(is_empty().not())
             .stderr(is_empty());
     }

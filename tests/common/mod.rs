@@ -48,7 +48,7 @@ macro_rules! yage {
         $(
             cmd.arg($v.to_cmd_arg());
         )*
-        cmd.assert()
+        cmd.assert().success()
     });
 }
 
