@@ -95,7 +95,8 @@ Commands:
   help     Print this message or the help of the given subcommand(s)
 
 Options:
-      --completion <SHELL>  Generate the completion code for this shell [possible values: bash, elvish, fish, powershell, zsh]
+      --completion <SHELL>  Generate the completion code for this shell [possible
+                            values: bash, elvish, fish, powershell, zsh]
   -v, --verbose...          Increase logging verbosity
   -q, --quiet...            Decrease logging verbosity
   -h, --help                Print help
