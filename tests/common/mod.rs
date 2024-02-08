@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::{
     ffi::OsStr,
     ops::Deref,
@@ -9,11 +11,8 @@ use assert_fs::{prelude::*, TempDir};
 use predicates::prelude::predicate::str::*;
 use predicates_tree::CaseTreeExt;
 
-#[allow(dead_code)]
 pub const KEY_PATTERN: &str = r"^AGE-SECRET-KEY-[0-9A-Z]{59}\s*$";
-#[allow(dead_code)]
 pub const PUBKEY_PATTERN: &str = r"^[0-9a-z]{62}\s*$";
-#[allow(dead_code)]
 pub const PUBKEY_INFO_PATTERN: &str = r"^Public key: [0-9a-z]{62}\s+$";
 
 pub trait TestPathChild {
@@ -106,32 +105,26 @@ impl ToPath for ChildPath {
     }
 }
 
-#[allow(dead_code)]
 pub fn read(path: &dyn ToPath) -> String {
     std::fs::read_to_string(path.path()).unwrap()
 }
 
-#[allow(dead_code)]
 pub fn temp_dir() -> TempDir {
     TempDir::new().unwrap()
 }
 
-#[allow(dead_code)]
 pub fn is_public_key() -> impl predicates::Predicate<str> {
     is_match(PUBKEY_PATTERN).unwrap()
 }
 
-#[allow(dead_code)]
 pub fn is_private_key() -> impl predicates::Predicate<str> {
     is_match(KEY_PATTERN).unwrap()
 }
 
-#[allow(dead_code)]
 pub fn is_pub_key_info() -> impl predicates::Predicate<str> {
     is_match(PUBKEY_INFO_PATTERN).unwrap()
 }
 
-#[allow(dead_code)]
 pub fn create_key(tmp: &TempDir) -> (PathBuf, PathBuf) {
     let id = uuid::Uuid::new_v4();
     let key_path = tmp.child(format!("{}.key", id.to_string()));
