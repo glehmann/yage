@@ -5,20 +5,20 @@ pub mod cli;
 pub mod error;
 
 pub mod cmd {
+    mod check;
     mod decrypt;
     mod edit;
     mod encrypt;
     mod env;
     mod keygen;
     mod pubkey;
-    mod status;
+    pub use check::check;
     pub use decrypt::decrypt;
     pub use edit::edit;
     pub use encrypt::encrypt;
     pub use env::env;
     pub use keygen::keygen;
     pub use pubkey::pubkey;
-    pub use status::status;
 }
 
 use std::fs::{File, OpenOptions};

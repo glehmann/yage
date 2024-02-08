@@ -28,7 +28,7 @@ fn run() -> error::Result<i32> {
         cli::Commands::Encrypt(args) => cmd::encrypt(args),
         cli::Commands::Decrypt(args) => cmd::decrypt(args),
         cli::Commands::Env(args) => cmd::env(args),
-        cli::Commands::Status(args) => cmd::status(args),
+        cli::Commands::Check(args) => cmd::check(args),
     }
 }
 

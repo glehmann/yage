@@ -1,10 +1,10 @@
 use serde_yaml as sy;
 
-use crate::cli::StatusArgs;
+use crate::cli::CheckArgs;
 use crate::error::Result;
 use crate::{check_encrypted, stdin_or_file, EncryptionStatus};
 
-pub fn status(args: &StatusArgs) -> Result<i32> {
+pub fn check(args: &CheckArgs) -> Result<i32> {
     let mut is_encrypted: bool = true;
     for file in &args.files {
         debug!("loading yaml file: {file:?}");

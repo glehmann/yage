@@ -10,7 +10,7 @@ fn help() {
     yage!("--help")
         .stdout(
             contains("A simple tool to manage encrypted secrets in YAML")
-                .and(is_match(r"status +Check the encryption status of a YAML file").unwrap()),
+                .and(is_match(r"check +Check the encryption status of a YAML file").unwrap()),
         )
         .stderr(is_empty());
 }
@@ -19,14 +19,14 @@ fn help() {
 fn no_args_help() {
     yage_cmd!().assert().failure().stdout(is_empty()).stderr(
         contains("A simple tool to manage encrypted secrets in YAML")
-            .and(is_match(r"status +Check the encryption status of a YAML file").unwrap()),
+            .and(is_match(r"check +Check the encryption status of a YAML file").unwrap()),
     );
 }
 
 #[test]
 fn help_sub_command() {
     for sub_command in vec![
-        "decrypt", "edit", "encrypt", "env", "keygen", "pubkey", "status",
+        "check", "decrypt", "edit", "encrypt", "env", "keygen", "pubkey",
     ] {
         yage!(sub_command, "--help")
             .stdout(

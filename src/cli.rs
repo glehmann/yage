@@ -20,13 +20,13 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    Check(CheckArgs),
     Decrypt(DecryptArgs),
     Edit(EditArgs),
     Encrypt(EncryptArgs),
     Env(EnvArgs),
     Keygen(KeygenArgs),
     Pubkey(PubkeyArgs),
-    Status(StatusArgs),
 }
 
 /// Generate a new age key
@@ -281,7 +281,8 @@ pub struct EnvArgs {
 
 /// Check the encryption status of a YAML file
 #[derive(Args, Debug)]
-pub struct StatusArgs {
+#[command(alias = "status")]
+pub struct CheckArgs {
     /// The YAML files to decrypt
     #[arg()]
     pub files: Vec<PathBuf>,
