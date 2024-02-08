@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use predicates_tree::CaseTreeExt;
 
 pub trait TestPathChild {
@@ -11,26 +13,19 @@ impl TestPathChild for assert_fs::fixture::ChildPath {
 }
 
 pub trait TestString {
-    fn assert(&self, predicate: impl predicates::Predicate<str>) -> &Self;
-}
-
-impl TestString for str {
-    fn assert(&self, predicate: impl predicates::Predicate<str>) -> &Self {
-        if let Some(case) = predicate.find_case(false, self.as_ref()) {
-            panic!("{}", case.tree(),);
+    fn assert(&self, predicate: impl predicates::Predicate<str>) -> &Self
+    where
+        Self: Deref<Target = str>,
+    {
+        if let Some(case) = predicate.find_case(false, self) {
+            panic!("{}", case.tree());
         }
         self
     }
 }
 
-impl TestString for String {
-    fn assert(&self, predicate: impl predicates::Predicate<str>) -> &Self {
-        if let Some(case) = predicate.find_case(false, self.as_ref()) {
-            panic!("{}", case.tree(),);
-        }
-        self
-    }
-}
+impl TestString for str {}
+impl TestString for String {}
 
 #[macro_export]
 macro_rules! yage {
