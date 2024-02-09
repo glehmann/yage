@@ -7,19 +7,6 @@ use predicates::prelude::predicate::str::*;
 
 use crate::common::*;
 
-const YAML_CONTENT: &str = "foo: bar
-titi:
-  toto: 42
-array:
-- 1
-- 2
-- 3
-empty_map: {}
-empty_array: []
-empty_string: ''
-empty: null
-";
-
 #[test]
 fn check_clear() {
     let tmp = temp_dir();

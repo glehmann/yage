@@ -155,3 +155,41 @@ pub fn create_key(tmp: &TempDir) -> (PathBuf, PathBuf) {
         .stderr(is_pub_key_info());
     (key_path.path().into(), public_path.path().into())
 }
+
+pub const YAML_CONTENT: &str = "foo: bar
+titi:
+  toto: 42
+array:
+- 1
+- 2
+- 3
+empty_map: {}
+empty_array: []
+empty_string: ''
+empty: null
+";
+
+pub fn generate_encrypted_file() -> (TempDir, PathBuf, PathBuf, PathBuf, PathBuf) {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!(
+        "encrypt",
+        "-R",
+        &pub_path,
+        &yaml_path,
+        "-o",
+        &encrypted_path
+    )
+    .stdout(is_empty())
+    .stderr(is_empty());
+    (
+        tmp,
+        key_path,
+        pub_path,
+        yaml_path.path().to_owned(),
+        encrypted_path.path().to_owned(),
+    )
+}

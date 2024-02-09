@@ -9,19 +9,6 @@ use yage::EncryptionStatus;
 
 use crate::common::*;
 
-const YAML_CONTENT: &str = "foo: bar
-titi:
-  toto: 42
-array:
-- 1
-- 2
-- 3
-empty_map: {}
-empty_array: []
-empty_string: ''
-empty: null
-";
-
 const YAML_CONTENT_ENCRYPTED_PATTERN: &str = r"foo: yage\[[0-9a-zA-Z/=\-+]+\]
 titi:
   toto: yage\[[0-9a-zA-Z/=\-+]+\]
