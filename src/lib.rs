@@ -258,6 +258,7 @@ pub fn check_encrypted(value: &sy::Value) -> EncryptionStatus {
                 EncryptionStatus::NotEncrypted
             }
         }
+        sy::Value::Null => EncryptionStatus::NoValue,
         _ => EncryptionStatus::NotEncrypted,
     }
 }
