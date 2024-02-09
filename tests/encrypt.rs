@@ -1,8 +1,11 @@
 mod common;
 
+use std::{fs::OpenOptions, io::Write};
+
 use assert_fs::prelude::*;
 use predicates::prelude::predicate::str::*;
 use serde_yaml as sy;
+use yage::EncryptionStatus;
 
 use crate::common::*;
 
@@ -209,4 +212,63 @@ fn encrypt_stdin_in_place() {
         .failure()
         .stdout(is_empty())
         .stderr(contains("error: stdin can't be modified in place"));
+}
+
+#[test]
+fn encrypt_partially_encrypted() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!(
+        "encrypt",
+        "-R",
+        &pub_path,
+        &yaml_path,
+        "-o",
+        &encrypted_path
+    )
+    .stdout(is_empty())
+    .stderr(is_empty());
+    let raw_encrypted_data = read(&encrypted_path);
+    dbg!(&raw_encrypted_data);
+    let encrypted_data: sy::Value = sy::from_str(&raw_encrypted_data).unwrap();
+    assert_eq!(
+        yage::check_encrypted(&encrypted_data),
+        EncryptionStatus::Encrypted
+    );
+    // append some data to the encrypted file, then try to encrypt it again
+    OpenOptions::new()
+        .append(true)
+        .open(&encrypted_path)
+        .unwrap()
+        .write_all(b"auie: tsrn\n")
+        .unwrap();
+    assert_eq!(
+        yage::check_encrypted(&sy::from_str(&read(&encrypted_path)).unwrap()),
+        EncryptionStatus::Mixed
+    );
+    let encrypted_path2 = tmp.child("file2.enc.yaml");
+    yage!(
+        "encrypt",
+        "-R",
+        &pub_path,
+        &encrypted_path,
+        "-o",
+        &encrypted_path2
+    )
+    .stdout(is_empty())
+    .stderr(is_empty());
+    // make sure we haven't changed the already encrypted stuff
+    assert!(read(&encrypted_path2).starts_with(&raw_encrypted_data));
+    // and verify we can decrypt the new file
+    let raw_encrypted_data2 = read(&encrypted_path2);
+    let encrypted_data2: sy::Value = sy::from_str(&raw_encrypted_data2).unwrap();
+    assert_eq!(
+        yage::check_encrypted(&encrypted_data2),
+        EncryptionStatus::Encrypted
+    );
+    let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
+    assert!(yage::decrypt_yaml(&encrypted_data2, &identities).is_ok());
 }
