@@ -52,3 +52,15 @@ fn keygen_to_public_file() {
         .stderr(is_pub_key_info());
     read(&public_path).assert(is_public_key());
 }
+
+#[test]
+fn keygen_override_key_file() {
+    let tmp = temp_dir();
+    let key_path = tmp.child("private.key");
+    key_path.touch().unwrap();
+    yage_cmd!("keygen", "--output", &key_path)
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(contains(": File exists"));
+}
