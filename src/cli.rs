@@ -68,7 +68,13 @@ pub struct PubkeyArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
-    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY")]
+    #[clap(
+        short,
+        long = "key",
+        name = "KEY",
+        env = "YAGE_KEY",
+        value_delimiter = ','
+    )]
     pub keys: Vec<String>,
 
     /// The output path to the public key file
@@ -101,7 +107,13 @@ pub struct EditArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
-    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY")]
+    #[clap(
+        short,
+        long = "key",
+        name = "KEY",
+        env = "YAGE_KEY",
+        value_delimiter = ','
+    )]
     pub keys: Vec<String>,
 
     /// Decrypt with the key at in this file
@@ -118,7 +130,13 @@ pub struct EditArgs {
     /// Encrypt to the specified recipients
     ///
     /// May be repeated.
-    #[clap(short, long = "recipient", name = "RECIPIENT", env = "YAGE_RECIPIENT")]
+    #[clap(
+        short,
+        long = "recipient",
+        name = "RECIPIENT",
+        env = "YAGE_RECIPIENT",
+        value_delimiter = ','
+    )]
     pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
@@ -162,7 +180,13 @@ pub struct EncryptArgs {
     /// Encrypt to the specified recipients
     ///
     /// May be repeated.
-    #[clap(short, long = "recipient", name = "RECIPIENT", env = "YAGE_RECIPIENT")]
+    #[clap(
+        short,
+        long = "recipient",
+        name = "RECIPIENT",
+        env = "YAGE_RECIPIENT",
+        value_delimiter = ','
+    )]
     pub recipients: Vec<String>,
 
     /// Encrypt to recipients listed at PATH
@@ -209,7 +233,13 @@ pub struct DecryptArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
-    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY")]
+    #[clap(
+        short,
+        long = "key",
+        name = "KEY",
+        env = "YAGE_KEY",
+        value_delimiter = ','
+    )]
     pub keys: Vec<String>,
 
     /// Decrypt with the key in the file
@@ -252,7 +282,13 @@ pub struct EnvArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
-    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY")]
+    #[clap(
+        short,
+        long = "key",
+        name = "KEY",
+        env = "YAGE_KEY",
+        value_delimiter = ','
+    )]
     pub keys: Vec<String>,
 
     /// Decrypt with the key at PATH
