@@ -41,6 +41,8 @@ pub enum YageError {
     Editor,
     #[error("key not found")]
     KeyNotFound,
+    #[error("stdin can't be modified in place")]
+    InPlaceStdin,
 }
 
 /// Alias for a `Result` with the error type `AppError`.

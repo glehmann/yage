@@ -1,10 +1,16 @@
+use std::path::PathBuf;
+use std::str::FromStr;
+
 use serde_yaml as sy;
 
 use crate::cli::DecryptArgs;
-use crate::error::Result;
+use crate::error::{Result, YageError};
 use crate::{decrypt_yaml, load_identities, stdin_or_file, stdout_or_file};
 
 pub fn decrypt(args: &DecryptArgs) -> Result<i32> {
+    if args.in_place && args.files.contains(&PathBuf::from_str("-").unwrap()) {
+        return Err(YageError::InPlaceStdin);
+    }
     let identities = load_identities(&args.keys, &args.key_files)?;
     for file in &args.files {
         debug!("loading yaml file: {file:?}");
