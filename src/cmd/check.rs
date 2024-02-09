@@ -12,11 +12,11 @@ pub fn check(args: &CheckArgs) -> Result<i32> {
         match check_encrypted(&input_data) {
             EncryptionStatus::Encrypted | EncryptionStatus::NoValue => (),
             EncryptionStatus::Mixed => {
-                error! {"{file:?} is partially encrypted"};
+                error! {"{file:?}: partially encrypted"};
                 is_encrypted = false;
             }
             EncryptionStatus::NotEncrypted => {
-                error! {"{file:?} is not encrypted"};
+                error! {"{file:?}: not encrypted"};
                 is_encrypted = false;
             }
         }
