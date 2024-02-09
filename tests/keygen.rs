@@ -29,6 +29,12 @@ fn keygen_to_key_file() {
         .stdout(is_empty())
         .stderr(is_pub_key_info());
     read(&key_path).assert(is_private_key());
+    // again with the short option
+    let key_path = tmp.child("private2.key");
+    yage!("keygen", "-o", &key_path)
+        .stdout(is_empty())
+        .stderr(is_pub_key_info());
+    read(&key_path).assert(is_private_key());
 }
 
 #[test]
@@ -36,6 +42,12 @@ fn keygen_to_public_file() {
     let tmp = temp_dir();
     let public_path = tmp.child("private.pub");
     yage!("keygen", "--public", &public_path)
+        .stdout(is_private_key())
+        .stderr(is_pub_key_info());
+    read(&public_path).assert(is_public_key());
+    // again with the short option
+    let public_path = tmp.child("private2.pub");
+    yage!("keygen", "-p", &public_path)
         .stdout(is_private_key())
         .stderr(is_pub_key_info());
     read(&public_path).assert(is_public_key());

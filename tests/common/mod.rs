@@ -2,6 +2,8 @@
 
 use std::{
     ffi::OsStr,
+    fs::File,
+    io::Write,
     ops::Deref,
     path::{Path, PathBuf},
 };
@@ -118,6 +120,13 @@ impl ToPath for ChildPath {
 
 pub fn read(path: &dyn ToPath) -> String {
     std::fs::read_to_string(path.path()).unwrap()
+}
+
+pub fn write(path: &dyn ToPath, content: &str) {
+    File::create(path.path())
+        .unwrap()
+        .write_all(content.as_bytes())
+        .unwrap();
 }
 
 pub fn temp_dir() -> TempDir {
