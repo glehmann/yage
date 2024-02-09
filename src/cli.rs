@@ -58,7 +58,7 @@ pub struct PubkeyArgs {
     /// If the filename is -, the keys are read from the standard input.
     ///
     /// May be repeated.
-    #[clap(name = "KEY_FILE", env = "YAGE_KEY_FILE")]
+    #[clap(name = "KEY_FILE", env = "YAGE_KEY_FILE", value_delimiter = ENV_PATH_SEP)]
     pub key_files: Vec<PathBuf>,
 
     /// The private keys
@@ -123,7 +123,8 @@ pub struct EditArgs {
         short = 'K',
         long = "key-file",
         name = "KEY_FILE",
-        env = "YAGE_KEY_FILE"
+        env = "YAGE_KEY_FILE",
+        value_delimiter = ENV_PATH_SEP,
     )]
     pub key_files: Vec<PathBuf>,
 
@@ -148,7 +149,8 @@ pub struct EditArgs {
         short = 'R',
         long = "recipient-file",
         name = "RECIPIENT_FILE",
-        env = "YAGE_RECIPIENT_FILE"
+        env = "YAGE_RECIPIENT_FILE",
+        value_delimiter = ENV_PATH_SEP,
     )]
     pub recipient_files: Vec<PathBuf>,
 
@@ -198,7 +200,8 @@ pub struct EncryptArgs {
         short = 'R',
         long = "recipient-file",
         name = "RECIPIENT_FILE",
-        env = "YAGE_RECIPIENT_FILE"
+        env = "YAGE_RECIPIENT_FILE",
+        value_delimiter = ENV_PATH_SEP,
     )]
     pub recipient_files: Vec<PathBuf>,
 
@@ -249,7 +252,8 @@ pub struct DecryptArgs {
         short = 'K',
         long = "key-file",
         name = "KEY_FILE",
-        env = "YAGE_KEY_FILE"
+        env = "YAGE_KEY_FILE",
+        value_delimiter = ENV_PATH_SEP,
     )]
     pub key_files: Vec<PathBuf>,
 
@@ -298,7 +302,8 @@ pub struct EnvArgs {
         short = 'K',
         long = "key-file",
         name = "KEY_FILE",
-        env = "YAGE_KEY_FILE"
+        env = "YAGE_KEY_FILE",
+        value_delimiter = ENV_PATH_SEP,
     )]
     pub key_files: Vec<PathBuf>,
 
@@ -323,6 +328,11 @@ pub struct CheckArgs {
     #[arg()]
     pub files: Vec<PathBuf>,
 }
+
+#[cfg(windows)]
+const ENV_PATH_SEP: char = ';';
+#[cfg(not(windows))]
+const ENV_PATH_SEP: char = ':';
 
 #[test]
 fn verify_cli() {

@@ -145,6 +145,7 @@ fn encrypt_recipients_from_env() {
     let (key_path1, pub_path1) = create_key(&tmp);
     let (key_path2, pub_path2) = create_key(&tmp);
     let (key_path3, pub_path3) = create_key(&tmp);
+    let (key_path4, pub_path4) = create_key(&tmp);
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
@@ -153,14 +154,17 @@ fn encrypt_recipients_from_env() {
             "YAGE_RECIPIENT",
             format!("{},{}", read(&pub_path1).trim(), read(&pub_path2).trim()),
         )
-        .env("YAGE_RECIPIENT_FILE", &pub_path3)
+        .env(
+            "YAGE_RECIPIENT_FILE",
+            std::env::join_paths(vec![&pub_path3, &pub_path4]).unwrap(),
+        )
         .assert()
         .success()
         .stdout(is_empty())
         .stderr(is_empty());
     let data: sy::Value = sy::from_str(&YAML_CONTENT).unwrap();
     let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
-    for key_path in vec![key_path1, key_path2, key_path3] {
+    for key_path in vec![key_path1, key_path2, key_path3, key_path4] {
         let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
         let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
         assert_eq!(data, decrypted_data);
