@@ -62,5 +62,6 @@ fn keygen_override_key_file() {
         .assert()
         .failure()
         .stdout(is_empty())
-        .stderr(contains(": File exists"));
+        // don't check the exact message: it depends on the OS
+        .stderr(contains("error:"));
 }
