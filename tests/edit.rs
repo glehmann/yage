@@ -1,7 +1,7 @@
 mod common;
 
 use common::*;
-use predicates::str::is_empty;
+use predicates::str::{contains, is_empty};
 use pretty_assertions::{assert_eq, assert_ne};
 use serde_yaml as sy;
 use yage::{check_encrypted, EncryptionStatus};
@@ -95,4 +95,15 @@ fn edit_key_from_stdin() {
         check_encrypted(&sy::from_str(&after_edit_data).unwrap()),
         EncryptionStatus::Encrypted
     );
+}
+
+#[test]
+fn edit_empty() {
+    yage_cmd!("edit")
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(contains(
+            "error: the following required arguments were not provided",
+        ));
 }
