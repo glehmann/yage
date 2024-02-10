@@ -288,7 +288,6 @@ And because writing command line tools in rust is fun!
 
 ## Still to be done
 
-* [ ] Add tests. Coming soon!
 * [ ] Support comments. Sadly no YAML library that I know of supports comments, so this will be a bit tricky.
 
 ## License
