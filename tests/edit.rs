@@ -7,6 +7,9 @@ use serde_yaml as sy;
 use yage::{check_encrypted, EncryptionStatus};
 
 // editor command that add "hop: hop" to the file
+#[cfg(windows)]
+const EDITOR: &str = "cmd /c 'echo hop: hop >> %0'";
+#[cfg(not(windows))]
 const EDITOR: &str = "bash -c 'echo hop: hop >> $0'";
 
 #[test]
