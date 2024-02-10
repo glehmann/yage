@@ -202,4 +202,4 @@ jobs:
         toolchain: stable
         components: clippy
     - name: Lint code with Clippy
-      run: cargo clippy -- -D warnings
+      run: cargo clippy --all-targets -- -D warnings
