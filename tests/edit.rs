@@ -12,6 +12,7 @@ const EDITOR: &str = "cmd /c 'echo hop: hop >> %0'";
 #[cfg(not(windows))]
 const EDITOR: &str = "bash -c 'echo hop: hop >> $0'";
 
+#[cfg(not(windows))]
 #[test]
 fn edit_key_file_from_args() {
     let (_tmp, key_path, _, _, encrypted_path) = generate_encrypted_file();
@@ -35,6 +36,7 @@ fn edit_key_file_from_args() {
     );
 }
 
+#[cfg(not(windows))]
 #[test]
 fn edit_key_file_from_env() {
     let (_tmp, key_path, _, _, encrypted_path) = generate_encrypted_file();
@@ -55,6 +57,7 @@ fn edit_key_file_from_env() {
     );
 }
 
+#[cfg(not(windows))]
 #[test]
 fn edit_key_from_env() {
     let (_tmp, key_path, _, _, encrypted_path) = generate_encrypted_file();
@@ -74,6 +77,7 @@ fn edit_key_from_env() {
     );
 }
 
+#[cfg(not(windows))]
 #[test]
 fn edit_key_from_stdin() {
     let (_tmp, key_path, _, _, encrypted_path) = generate_encrypted_file();
