@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::process::Command;
 
 use serde_yaml as sy;
 use tempfile::tempdir;
@@ -33,22 +34,28 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
         sy::to_writer(output, &previous_data)?;
     }
     // open the editor
-    let mut editor_cmd = std::process::Command::new(&args.editor);
-    editor_cmd.arg(&temp_file);
-    let mut editor_process = if which::which(&args.editor).is_ok() {
-        editor_cmd.spawn()?
-    } else if let Some(editor) = shlex::split(&args.editor) {
-        std::process::Command::new(&editor[0])
-            .args(&editor[1..])
-            .arg(&temp_file)
-            .spawn()
-            .path_ctx(&editor[0])?
-    } else {
-        // run the command as is, so the user can get a meaningful error
-        editor_cmd.spawn().path_ctx(&args.editor)?
+    let editor_process_res = Command::new(&args.editor).arg(&temp_file).spawn();
+    let mut editor_process = match editor_process_res {
+        Ok(ep) => ep,
+        Err(err) => {
+            // if we can't usse the editor string as a command, it may have arguments that we need to split
+            if let Some(ref editor_args) = shlex::split(&args.editor) {
+                if editor_args.is_empty() {
+                    // fallback to the previous error
+                    return Err(err).path_ctx(&args.editor);
+                }
+                Command::new(&editor_args[0])
+                    .args(&editor_args[1..])
+                    .arg(&temp_file)
+                    .spawn()
+                    .path_ctx(&editor_args[0])?
+            } else {
+                // we can't split the editor string, so fallback to the previous error
+                return Err(err).path_ctx(&args.editor);
+            }
+        }
     };
-    let status = editor_process.wait()?;
-    if !status.success() {
+    if !editor_process.wait()?.success() {
         return Err(YageError::Editor);
     }
     // load the data edited by the user
