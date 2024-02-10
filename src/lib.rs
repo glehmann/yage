@@ -73,6 +73,8 @@ pub fn stdin_or_private_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
     Ok(if path == Path::new("-") {
         BufReader::new(Box::new(stdin()))
     } else {
+        let br: BufReader<Box<dyn Read>> =
+            BufReader::new(Box::new(File::open(path).path_ctx(path)?));
         if let Err(e) = fs_mistrust::Mistrust::new()
             .verifier()
             .require_file()
@@ -80,7 +82,7 @@ pub fn stdin_or_private_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
         {
             warn!("file {path:?} is not private: {e}");
         }
-        BufReader::new(Box::new(File::open(path).path_ctx(path)?))
+        br
     })
 }
 
