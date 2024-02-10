@@ -98,7 +98,7 @@ pub struct PubkeyArgs {
 pub struct EditArgs {
     /// The editor command to use
     #[clap(short, long, env = "EDITOR")]
-    pub editor: PathBuf,
+    pub editor: String,
 
     /// Decrypt with the specified key
     ///

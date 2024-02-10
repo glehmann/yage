@@ -33,10 +33,21 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
         sy::to_writer(output, &previous_data)?;
     }
     // open the editor
-    let status = std::process::Command::new(&args.editor)
-        .arg(&temp_file)
-        .spawn()?
-        .wait()?;
+    let mut editor_cmd = std::process::Command::new(&args.editor);
+    editor_cmd.arg(&temp_file);
+    let mut editor_process = if which::which(&args.editor).is_ok() {
+        editor_cmd.spawn()?
+    } else if let Some(editor) = shlex::split(&args.editor) {
+        std::process::Command::new(&editor[0])
+            .args(&editor[1..])
+            .arg(&temp_file)
+            .spawn()
+            .path_ctx(&editor[0])?
+    } else {
+        // run the command as is, so the user can get a meaningful error
+        editor_cmd.spawn().path_ctx(&args.editor)?
+    };
+    let status = editor_process.wait()?;
     if !status.success() {
         return Err(YageError::Editor);
     }
