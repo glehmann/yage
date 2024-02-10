@@ -33,31 +33,10 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
         let output = create_private_file(&temp_file)?;
         sy::to_writer(output, &previous_data)?;
     }
+
     // open the editor
-    let editor_process_res = Command::new(&args.editor).arg(&temp_file).spawn();
-    let mut editor_process = match editor_process_res {
-        Ok(ep) => ep,
-        Err(err) => {
-            // if we can't usse the editor string as a command, it may have arguments that we need to split
-            if let Some(ref editor_args) = shlex::split(&args.editor) {
-                if editor_args.is_empty() {
-                    // fallback to the previous error
-                    return Err(err).path_ctx(&args.editor);
-                }
-                Command::new(&editor_args[0])
-                    .args(&editor_args[1..])
-                    .arg(&temp_file)
-                    .spawn()
-                    .path_ctx(&editor_args[0])?
-            } else {
-                // we can't split the editor string, so fallback to the previous error
-                return Err(err).path_ctx(&args.editor);
-            }
-        }
-    };
-    if !editor_process.wait()?.success() {
-        return Err(YageError::Editor);
-    }
+    run_editor(&args.editor, &temp_file)?;
+
     // load the data edited by the user
     let edited_data: sy::Value = sy::from_reader(File::open(&temp_file)?)?;
 
@@ -100,4 +79,33 @@ fn yaml_get<'a>(data: &'a sy::Value, keys: &[Key]) -> Result<&'a sy::Value> {
             yaml_get(value, &keys[1..])
         }
     }
+}
+
+fn run_editor(editor: &str, temp_file: &std::path::Path) -> Result<()> {
+    let editor_process_res = Command::new(&editor).arg(&temp_file).spawn();
+    let mut editor_process = match editor_process_res {
+        Ok(ep) => ep,
+        Err(err) => {
+            // if we can't use the editor string as a command, it may have arguments that we need to split
+            if let Some(ref editor_args) = shlex::split(&editor) {
+                if editor_args.is_empty() {
+                    // we need at least on element, fallback to the previous error so that the user
+                    // can see its editor value in th error message
+                    return Err(err).path_ctx(&editor);
+                }
+                Command::new(&editor_args[0])
+                    .args(&editor_args[1..])
+                    .arg(&temp_file)
+                    .spawn()
+                    .path_ctx(&editor_args[0])?
+            } else {
+                // we can't split the editor string, so fallback to the previous error
+                return Err(err).path_ctx(&editor);
+            }
+        }
+    };
+    if !editor_process.wait()?.success() {
+        return Err(YageError::Editor);
+    }
+    Ok(())
 }
