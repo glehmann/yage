@@ -82,25 +82,25 @@ fn yaml_get<'a>(data: &'a sy::Value, keys: &[Key]) -> Result<&'a sy::Value> {
 }
 
 fn run_editor(editor: &str, temp_file: &std::path::Path) -> Result<()> {
-    let editor_process_res = Command::new(&editor).arg(&temp_file).spawn();
+    let editor_process_res = Command::new(editor).arg(temp_file).spawn();
     let mut editor_process = match editor_process_res {
         Ok(ep) => ep,
         Err(err) => {
             // if we can't use the editor string as a command, it may have arguments that we need to split
-            if let Some(ref editor_args) = shlex::split(&editor) {
+            if let Some(ref editor_args) = shlex::split(editor) {
                 if editor_args.is_empty() {
                     // we need at least on element, fallback to the previous error so that the user
                     // can see its editor value in th error message
-                    return Err(err).path_ctx(&editor);
+                    return Err(err).path_ctx(editor);
                 }
                 Command::new(&editor_args[0])
                     .args(&editor_args[1..])
-                    .arg(&temp_file)
+                    .arg(temp_file)
                     .spawn()
                     .path_ctx(&editor_args[0])?
             } else {
                 // we can't split the editor string, so fallback to the previous error
-                return Err(err).path_ctx(&editor);
+                return Err(err).path_ctx(editor);
             }
         }
     };
