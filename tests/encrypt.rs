@@ -1,10 +1,10 @@
 mod common;
 
-use std::{fs::OpenOptions, io::Write};
-
 use assert_fs::prelude::*;
 use predicates::prelude::predicate::str::*;
+use pretty_assertions::assert_eq;
 use serde_yaml as sy;
+use std::{fs::OpenOptions, io::Write};
 use yage::EncryptionStatus;
 
 use crate::common::*;
@@ -33,8 +33,8 @@ fn encrypt_to_stdout() {
         .stderr(is_empty())
         .get_output()
         .clone();
-    let data: sy::Value = sy::from_str(&YAML_CONTENT).unwrap();
-    let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
+    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
+    let identities = yage::load_identities(&[], &[key_path]).unwrap();
     let encrypted_data: sy::Value =
         sy::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
     let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
@@ -58,8 +58,8 @@ fn encrypt_to_file() {
     )
     .stdout(is_empty())
     .stderr(is_empty());
-    let data: sy::Value = sy::from_str(&YAML_CONTENT).unwrap();
-    let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
+    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
+    let identities = yage::load_identities(&[], &[key_path]).unwrap();
     let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
     let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
     assert_eq!(data, decrypted_data);
@@ -111,18 +111,18 @@ fn encrypt_multiple_recipients() {
     .success()
     .stdout(is_empty())
     .stderr(is_empty());
-    let data: sy::Value = sy::from_str(&YAML_CONTENT).unwrap();
+    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
     let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
-    for key_path in vec![key_path1, key_path2, key_path3, key_path4, key_path5] {
-        let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
+    for key_path in [key_path1, key_path2, key_path3, key_path4, key_path5] {
+        let identities = yage::load_identities(&[], &[key_path]).unwrap();
         let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
         assert_eq!(data, decrypted_data);
     }
     // YAGE_RECIPIENT env is overridden by command line
-    let identities = yage::load_identities(&vec![], &vec![key_path6]).unwrap();
+    let identities = yage::load_identities(&[], &[key_path6]).unwrap();
     assert!(yage::decrypt_yaml(&encrypted_data, &identities).is_err());
     // YAGE_RECIPIENT_FILE env is overridden by command line
-    let identities = yage::load_identities(&vec![], &vec![key_path7]).unwrap();
+    let identities = yage::load_identities(&[], &[key_path7]).unwrap();
     assert!(yage::decrypt_yaml(&encrypted_data, &identities).is_err());
 }
 
@@ -149,10 +149,10 @@ fn encrypt_recipients_from_env() {
         .success()
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = sy::from_str(&YAML_CONTENT).unwrap();
+    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
     let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
-    for key_path in vec![key_path1, key_path2, key_path3, key_path4] {
-        let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
+    for key_path in [key_path1, key_path2, key_path3, key_path4] {
+        let identities = yage::load_identities(&[], &[key_path]).unwrap();
         let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
         assert_eq!(data, decrypted_data);
     }
@@ -169,8 +169,8 @@ fn encrypt_from_stdin() {
         .success()
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = sy::from_str(&YAML_CONTENT).unwrap();
-    let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
+    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
+    let identities = yage::load_identities(&[], &[key_path]).unwrap();
     let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
     let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
     assert_eq!(data, decrypted_data);
@@ -187,9 +187,9 @@ fn encrypt_in_place() {
     yage!("encrypt", "-R", &pub_path, "-i", &yaml_path, &other_path)
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = sy::from_str(&YAML_CONTENT).unwrap();
-    let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
-    for path in vec![&yaml_path, &other_path] {
+    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
+    let identities = yage::load_identities(&[], &[key_path]).unwrap();
+    for path in [&yaml_path, &other_path] {
         let encrypted_data: sy::Value = sy::from_str(&read(path)).unwrap();
         let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
         assert_eq!(data, decrypted_data);
@@ -260,6 +260,6 @@ fn encrypt_partially_encrypted() {
         yage::check_encrypted(&encrypted_data2),
         EncryptionStatus::Encrypted
     );
-    let identities = yage::load_identities(&vec![], &vec![key_path]).unwrap();
+    let identities = yage::load_identities(&[], &[key_path]).unwrap();
     assert!(yage::decrypt_yaml(&encrypted_data2, &identities).is_ok());
 }

@@ -3,7 +3,7 @@ mod common;
 use crate::common::*;
 use predicates::prelude::predicate::str::*;
 use predicates::prelude::*;
-use std::vec;
+// use pretty_assertions::{assert_eq, assert_ne};
 
 #[test]
 fn help() {
@@ -25,7 +25,7 @@ fn no_args_help() {
 
 #[test]
 fn help_sub_command() {
-    for sub_command in vec![
+    for sub_command in [
         "check", "decrypt", "edit", "encrypt", "env", "keygen", "pubkey",
     ] {
         yage!(sub_command, "--help")

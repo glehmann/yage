@@ -1,8 +1,8 @@
 mod common;
 
 use common::*;
-
 use predicates::str::is_empty;
+use pretty_assertions::{assert_eq, assert_ne};
 use serde_yaml as sy;
 use yage::{check_encrypted, EncryptionStatus};
 

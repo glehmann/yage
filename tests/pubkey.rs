@@ -1,9 +1,9 @@
 mod common;
 
+use crate::common::*;
 use assert_fs::prelude::*;
 use predicates::prelude::predicate::str::*;
-
-use crate::common::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn pubkey_to_file() {

@@ -3,6 +3,7 @@ mod common;
 use assert_fs::fixture::PathChild;
 use common::*;
 use predicates::str::{contains, is_empty};
+// use pretty_assertions::{assert_eq, assert_ne};
 
 const YAML_CONTENT: &str = "foo: bar";
 

@@ -1,9 +1,9 @@
 mod common;
 
+use crate::common::*;
 use assert_fs::prelude::*;
 use predicates::str::{contains, is_empty};
-
-use crate::common::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn decrypt_to_stdout() {

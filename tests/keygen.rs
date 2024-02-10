@@ -2,10 +2,8 @@ mod common;
 
 use crate::common::*;
 use assert_fs::prelude::*;
-// use lipsum::lipsum;
-// use predicates::prelude::predicate::path::*;
 use predicates::prelude::predicate::str::*;
-// use predicates::prelude::*;
+// use pretty_assertions::{assert_eq, assert_ne};
 
 #[test]
 fn keygen_stdout() {

@@ -1,11 +1,10 @@
 mod common;
 
-use std::{fs::OpenOptions, io::Write};
-
+use crate::common::*;
 use assert_fs::prelude::*;
 use predicates::prelude::predicate::str::*;
-
-use crate::common::*;
+// use pretty_assertions::{assert_eq, assert_ne};
+use std::{fs::OpenOptions, io::Write};
 
 #[test]
 fn check_clear() {
