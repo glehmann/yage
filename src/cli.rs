@@ -58,6 +58,8 @@ pub struct PubkeyArgs {
     /// If the filename is -, the keys are read from the standard input.
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY_FILE environment variable separated by the system path separator.
     #[clap(name = "KEY_FILE", env = "YAGE_KEY_FILE", value_delimiter = ENV_PATH_SEP)]
     pub key_files: Vec<PathBuf>,
 
@@ -68,6 +70,8 @@ pub struct PubkeyArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
     #[clap(
         short,
         long = "key",
@@ -107,6 +111,8 @@ pub struct EditArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
     #[clap(
         short,
         long = "key",
@@ -119,6 +125,8 @@ pub struct EditArgs {
     /// Decrypt with the key at in this file
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY_FILE environment variable separated by the system path separator.
     #[clap(
         short = 'K',
         long = "key-file",
@@ -131,6 +139,8 @@ pub struct EditArgs {
     /// Encrypt to the specified recipients
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_RECIPIENT environment variable separated by commas.
     #[clap(
         short,
         long = "recipient",
@@ -145,6 +155,8 @@ pub struct EditArgs {
     /// The recipients file is a text file with one recipient per line.
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_RECIPIENT_FILE environment variable separated by the system path separator.
     #[clap(
         short = 'R',
         long = "recipient-file",
@@ -182,6 +194,8 @@ pub struct EncryptArgs {
     /// Encrypt to the specified recipients
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_RECIPIENT environment variable separated by commas.
     #[clap(
         short,
         long = "recipient",
@@ -196,6 +210,8 @@ pub struct EncryptArgs {
     /// The recipients file is a text file with one recipient per line.
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_RECIPIENT_FILE environment variable separated by the system path separator.
     #[clap(
         short = 'R',
         long = "recipient-file",
@@ -236,6 +252,8 @@ pub struct DecryptArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
     #[clap(
         short,
         long = "key",
@@ -248,6 +266,8 @@ pub struct DecryptArgs {
     /// Decrypt with the key in the file
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY_FILE environment variable separated by the system path separator.
     #[clap(
         short = 'K',
         long = "key-file",
@@ -286,6 +306,8 @@ pub struct EnvArgs {
     /// environment variable should only be used in a secure environment.
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
     #[clap(
         short,
         long = "key",
@@ -298,6 +320,8 @@ pub struct EnvArgs {
     /// Decrypt with the key at PATH
     ///
     /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY_FILE environment variable separated by the system path separator.
     #[clap(
         short = 'K',
         long = "key-file",
@@ -324,7 +348,7 @@ pub struct EnvArgs {
 #[derive(Args, Debug)]
 #[command(alias = "status")]
 pub struct CheckArgs {
-    /// The YAML files to decrypt
+    /// The YAML files to check
     #[arg()]
     pub files: Vec<PathBuf>,
 }

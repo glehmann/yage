@@ -48,7 +48,7 @@ Check the encryption status of a YAML file
 
 ###### **Arguments:**
 
-* `<FILES>` — The YAML files to decrypt
+* `<FILES>` — The YAML files to check
 
 
 
