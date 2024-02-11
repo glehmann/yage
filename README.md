@@ -288,6 +288,7 @@ And because writing command line tools in rust is fun!
 
 ## Still to be done
 
+* [ ] Keep track of the recipients used to encrypt the values in the encrypted file.
 * [ ] Support comments. Sadly no YAML library that I know of supports comments, so this will be a bit tricky.
 
 ## License
