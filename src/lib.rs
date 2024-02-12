@@ -295,6 +295,34 @@ fn check_encrypted_iter<'a>(iter: impl Iterator<Item = &'a sy::Value>) -> Encryp
     status
 }
 
+pub fn flatten_yage_encrypted_values(value: &sy::Value) -> Vec<YageEncodedValue> {
+    match value {
+        sy::Value::Mapping(mapping) => mapping
+            .iter()
+            .flat_map(|(_, v)| flatten_yage_encrypted_values(v))
+            .collect(),
+        sy::Value::Sequence(sequence) => sequence
+            .iter()
+            .flat_map(flatten_yage_encrypted_values)
+            .collect(),
+        sy::Value::String(s) => match YageEncodedValue::from_str(s) {
+            Ok(yev) => vec![yev],
+            Err(_) => vec![],
+        },
+        _ => vec![],
+    }
+}
+
+pub fn check_recipients(value: &sy::Value) -> bool {
+    flatten_yage_encrypted_values(value)
+        .iter()
+        .filter(|v| !v.recipients.is_empty())
+        .map(|v| &v.recipients)
+        .collect::<Vec<_>>()
+        .windows(2)
+        .all(|w| w[0] == w[1])
+}
+
 #[derive(Debug, Clone)]
 pub struct YageEncodedValue {
     pub data: String,

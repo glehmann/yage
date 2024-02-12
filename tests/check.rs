@@ -75,3 +75,34 @@ fn check_mixed() {
         .stdout(is_empty())
         .stderr(contains(": partially encrypted"));
 }
+
+#[test]
+fn check_inconsistent_recipients() {
+    let (tmp, _, _, _, encrypted_path) = generate_encrypted_file();
+    let (_, pub_path2) = create_key(&tmp);
+    let yaml_path2 = tmp.child("file2.yaml");
+    write(&yaml_path2, "auie: tsrn\n");
+    let encrypted_path2 = tmp.child("file2.enc.yaml");
+    yage!(
+        "encrypt",
+        "-R",
+        &pub_path2,
+        &yaml_path2,
+        "-o",
+        &encrypted_path2
+    );
+    // append some data to the encrypted file
+    {
+        OpenOptions::new()
+            .append(true)
+            .open(&encrypted_path)
+            .unwrap()
+            .write_all(read(&encrypted_path2).as_bytes())
+            .unwrap();
+    }
+    yage_cmd!("check", &encrypted_path)
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(contains(": inconsistent recipients"));
+}
