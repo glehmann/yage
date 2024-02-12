@@ -203,9 +203,12 @@ pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Res
     let mut writer = encryptor.wrap_output(&mut encrypted)?;
     writer.write_all(data.as_bytes())?;
     writer.finish()?;
+    let mut recipients: Vec<_> = recipients.iter().map(|r| r.to_string()).collect();
+    recipients.sort();
+    recipients.dedup();
     let yev = YageEncodedValue {
         data: BASE64_STANDARD.encode(&encrypted),
-        recipients: recipients.iter().map(|r| r.to_string()).collect(),
+        recipients,
     };
     Ok(yev.to_string())
 }
@@ -352,14 +355,10 @@ impl FromStr for YageEncodedValue {
     }
 }
 
-impl ToString for YageEncodedValue {
-    fn to_string(&self) -> String {
-        let data = &self.data;
-        let mut recipients = self.recipients.clone();
-        recipients.sort();
-        recipients.dedup();
-        let r = recipients.join(",");
-        format!("yage[{data}|r:{r}]")
+impl std::fmt::Display for YageEncodedValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let recipients = self.recipients.join(",");
+        write!(f, "yage[{}|r:{}]", self.data, recipients)
     }
 }
 
