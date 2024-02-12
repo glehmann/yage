@@ -86,10 +86,6 @@ pub fn stdin_or_private_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
     })
 }
 
-pub fn is_yage_encoded(s: &str) -> bool {
-    s.starts_with("yage[") && s.ends_with(']')
-}
-
 pub fn decrypt_yaml(value: &sy::Value, identities: &[x25519::Identity]) -> Result<sy::Value> {
     match value {
         sy::Value::Mapping(mapping) => {
@@ -118,25 +114,21 @@ pub fn decrypt_yaml(value: &sy::Value, identities: &[x25519::Identity]) -> Resul
 }
 
 pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Value> {
-    if is_yage_encoded(s) {
-        // remove the yage[…] prefix and suffix
-        let payload = s.substring(5, s.len() - 1);
-        let encoded = payload
-            .split('|')
-            .nth(0)
-            .ok_or(YageError::InvalidValueEncoding)?;
-        let encrypted = BASE64_STANDARD.decode(encoded)?;
-        let decryptor = match age::Decryptor::new(&encrypted[..])? {
-            age::Decryptor::Recipients(d) => Ok(d),
-            _ => Err(YageError::PassphraseUnsupported),
-        }?;
-        let mut decrypted = vec![];
-        let mut reader = decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
-        reader.read_to_end(&mut decrypted)?;
-        let value: sy::Value = sy::from_slice(&decrypted)?;
-        Ok(value)
-    } else {
-        Ok(sy::Value::String(s.to_owned()))
+    match YageEncodedValue::from_str(s) {
+        Ok(yev) => {
+            let encrypted = BASE64_STANDARD.decode(yev.data)?;
+            let decryptor = match age::Decryptor::new(&encrypted[..])? {
+                age::Decryptor::Recipients(d) => Ok(d),
+                _ => Err(YageError::PassphraseUnsupported),
+            }?;
+            let mut decrypted = vec![];
+            let mut reader =
+                decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
+            reader.read_to_end(&mut decrypted)?;
+            let value: sy::Value = sy::from_slice(&decrypted)?;
+            Ok(value)
+        }
+        Err(_) => Ok(sy::Value::String(s.to_owned())),
     }
 }
 
@@ -180,7 +172,7 @@ pub fn encrypt_yaml(value: &sy::Value, recipients: &[x25519::Recipient]) -> Resu
             Ok(sy::Value::Sequence(output))
         }
         sy::Value::String(s) => {
-            let output = if is_yage_encoded(s) {
+            let output = if YageEncodedValue::from_str(s).is_ok() {
                 // keep the already encrypted value
                 s.to_owned()
             } else {
@@ -210,13 +202,11 @@ pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Res
     let mut writer = encryptor.wrap_output(&mut encrypted)?;
     writer.write_all(data.as_bytes())?;
     writer.finish()?;
-    let encoded = BASE64_STANDARD.encode(&encrypted);
-    let r = recipients
-        .iter()
-        .map(|r| r.to_string())
-        .collect::<Vec<String>>()
-        .join(",");
-    Ok(format!("yage[{encoded}|r:{r}]"))
+    let yev = YageEncodedValue {
+        data: BASE64_STANDARD.encode(&encrypted),
+        recipients: recipients.iter().map(|r| r.to_string()).collect(),
+    };
+    Ok(yev.to_string())
 }
 
 pub fn load_recipients(
@@ -264,7 +254,7 @@ pub fn check_encrypted(value: &sy::Value) -> EncryptionStatus {
         sy::Value::Mapping(mapping) => check_encrypted_iter(mapping.iter().map(|(_, v)| v)),
         sy::Value::Sequence(sequence) => check_encrypted_iter(sequence.iter()),
         sy::Value::String(s) => {
-            if is_yage_encoded(s) {
+            if YageEncodedValue::from_str(s).is_ok() {
                 EncryptionStatus::Encrypted
             } else {
                 EncryptionStatus::NotEncrypted
@@ -302,4 +292,44 @@ fn check_encrypted_iter<'a>(iter: impl Iterator<Item = &'a sy::Value>) -> Encryp
         }
     }
     status
+}
+
+#[derive(Debug, Clone)]
+pub struct YageEncodedValue {
+    pub data: String,
+    pub recipients: Vec<String>,
+}
+
+impl FromStr for YageEncodedValue {
+    type Err = YageError;
+
+    fn from_str(s: &str) -> Result<Self> {
+        if !s.starts_with("yage[") || !s.ends_with(']') {
+            return Err(YageError::InvalidValueEncoding);
+        }
+        // remove the yage[…] prefix and suffix
+        let payload = s.substring(5, s.len() - 1);
+        let components: Vec<_> = payload.split('|').collect();
+        if components.len() != 2 {
+            return Err(YageError::InvalidValueEncoding);
+        }
+        let data = components[0].to_owned();
+        if !components[1].starts_with("r:") {
+            return Err(YageError::InvalidValueEncoding);
+        }
+        let recipients = components[1].substring(2, components[1].len());
+        let recipients: Vec<String> = recipients.split(',').map(|r| r.to_owned()).collect();
+        Ok(YageEncodedValue { data, recipients })
+    }
+}
+
+impl ToString for YageEncodedValue {
+    fn to_string(&self) -> String {
+        let data = &self.data;
+        let mut recipients = self.recipients.clone();
+        recipients.sort();
+        recipients.dedup();
+        let r = recipients.join(",");
+        format!("yage[{data}|r:{r}]")
+    }
 }
