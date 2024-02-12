@@ -263,3 +263,48 @@ fn encrypt_partially_encrypted() {
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
     assert!(yage::decrypt_yaml(&encrypted_data2, &identities).is_ok());
 }
+
+#[test]
+fn encrypt_partially_encrypted_other_recipient() {
+    let tmp = temp_dir();
+    let (_, pub_path1) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!(
+        "encrypt",
+        "-R",
+        &pub_path1,
+        &yaml_path,
+        "-o",
+        &encrypted_path
+    )
+    .stdout(is_empty())
+    .stderr(is_empty());
+    let raw_encrypted_data = read(&encrypted_path);
+    dbg!(&raw_encrypted_data);
+    let encrypted_data: sy::Value = sy::from_str(&raw_encrypted_data).unwrap();
+    assert_eq!(
+        yage::check_encrypted(&encrypted_data),
+        EncryptionStatus::Encrypted
+    );
+    // append some data to the encrypted file, then try to encrypt it again
+    OpenOptions::new()
+        .append(true)
+        .open(&encrypted_path)
+        .unwrap()
+        .write_all(b"auie: tsrn\n")
+        .unwrap();
+    assert_eq!(
+        yage::check_encrypted(&sy::from_str(&read(&encrypted_path)).unwrap()),
+        EncryptionStatus::Mixed
+    );
+    let (_, pub_path2) = create_key(&tmp);
+    yage_cmd!("encrypt", "-R", &pub_path2, &encrypted_path)
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(contains(
+            "error: the recipients form the command line don't match the recipients from the file",
+        ));
+}
