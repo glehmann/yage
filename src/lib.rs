@@ -242,6 +242,8 @@ pub fn load_recipients(
             res.push(recipient);
         }
     }
+    res.sort_by_cached_key(|r| r.to_string());
+    res.dedup();
     Ok(res)
 }
 
