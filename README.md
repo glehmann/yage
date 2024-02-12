@@ -228,7 +228,7 @@ If you have the private key, you can edit the file in place with your favorite t
 configured in the `EDITOR` environment variable:
 
 ```sh
-$ export EDITOR=vim
+$ export EDITOR=micro
 $ yage edit -K prod.key secrets.yaml
 ```
 
