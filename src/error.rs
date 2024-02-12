@@ -45,6 +45,8 @@ pub enum YageError {
     InPlaceStdin,
     #[error("invalid value encoding")]
     InvalidValueEncoding,
+    #[error("the recipients form the command line don't match the recipients from the file")]
+    InvalidRecipients,
 }
 
 /// Alias for a `Result` with the error type `AppError`.
