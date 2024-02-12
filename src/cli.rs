@@ -101,7 +101,7 @@ pub struct PubkeyArgs {
 #[derive(Args, Debug)]
 pub struct EditArgs {
     /// The editor command to use
-    #[clap(short, long, env = "EDITOR")]
+    #[clap(short, long, default_value = "vim", env = "EDITOR")]
     pub editor: String,
 
     /// Decrypt with the specified key

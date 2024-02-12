@@ -86,7 +86,7 @@ The YAML file may contain some unencrypted values, and some encrypted values. Th
 
 Only the modified values are encrypted, the other values are left unchanged.
 
-**Usage:** `yage edit [OPTIONS] --editor <EDITOR> <FILE>`
+**Usage:** `yage edit [OPTIONS] <FILE>`
 
 ###### **Arguments:**
 
@@ -95,6 +95,8 @@ Only the modified values are encrypted, the other values are left unchanged.
 ###### **Options:**
 
 * `-e`, `--editor <EDITOR>` — The editor command to use
+
+  Default value: `vim`
 * `-k`, `--key <KEY>` — Decrypt with the specified key
 * `-K`, `--key-file <KEY_FILE>` — Decrypt with the key at in this file
 
