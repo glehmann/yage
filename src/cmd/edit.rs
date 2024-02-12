@@ -18,6 +18,9 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
     debug!("loading yaml file: {:?}", args.file);
     let input_data: sy::Value = sy::from_reader(File::open(&args.file).path_ctx(&args.file)?)?;
     let recipients = get_yaml_recipients(&input_data)?;
+    if recipients.is_empty() {
+        return Err(YageError::NoRecipients);
+    }
     let previous_data = decrypt_yaml(&input_data, &identities)?;
     // save the decrypted data in an editable temporary file. The file has the same name as the
     // original file, but in a temporary directory. This way the user knows which file he is

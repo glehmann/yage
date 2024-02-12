@@ -1,5 +1,6 @@
 mod common;
 
+use assert_fs::fixture::PathChild;
 use common::*;
 use predicates::str::{contains, is_empty};
 use pretty_assertions::{assert_eq, assert_ne};
@@ -106,4 +107,16 @@ fn edit_empty() {
         .stderr(contains(
             "error: the following required arguments were not provided",
         ));
+}
+
+#[test]
+fn edit_no_recipient() {
+    let tmp = temp_dir();
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, "");
+    yage_cmd!("edit", &yaml_path)
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(contains("error: no recipients provided"));
 }
