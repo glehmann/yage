@@ -136,36 +136,6 @@ pub struct EditArgs {
     )]
     pub key_files: Vec<PathBuf>,
 
-    /// Encrypt to the specified recipients
-    ///
-    /// May be repeated.
-    ///
-    /// Multiple values may be passed in the YAGE_RECIPIENT environment variable separated by commas.
-    #[clap(
-        short,
-        long = "recipient",
-        name = "RECIPIENT",
-        env = "YAGE_RECIPIENT",
-        value_delimiter = ','
-    )]
-    pub recipients: Vec<String>,
-
-    /// Encrypt to recipients listed at PATH
-    ///
-    /// The recipients file is a text file with one recipient per line.
-    ///
-    /// May be repeated.
-    ///
-    /// Multiple values may be passed in the YAGE_RECIPIENT_FILE environment variable separated by the system path separator.
-    #[clap(
-        short = 'R',
-        long = "recipient-file",
-        name = "RECIPIENT_FILE",
-        env = "YAGE_RECIPIENT_FILE",
-        value_delimiter = ENV_PATH_SEP,
-    )]
-    pub recipient_files: Vec<PathBuf>,
-
     /// The encrypted YAML file to edit
     #[arg()]
     pub file: PathBuf,

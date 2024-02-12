@@ -97,8 +97,6 @@ Only the modified values are encrypted, the other values are left unchanged.
 * `-e`, `--editor <EDITOR>` — The editor command to use
 * `-k`, `--key <KEY>` — Decrypt with the specified key
 * `-K`, `--key-file <KEY_FILE>` — Decrypt with the key at in this file
-* `-r`, `--recipient <RECIPIENT>` — Encrypt to the specified recipients
-* `-R`, `--recipient-file <RECIPIENT_FILE>` — Encrypt to recipients listed at PATH
 
 
 

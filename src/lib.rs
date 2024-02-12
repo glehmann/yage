@@ -21,6 +21,7 @@ pub mod cmd {
     pub use pubkey::pubkey;
 }
 
+use std::collections::HashSet;
 use std::fs::{File, OpenOptions};
 use std::io::{stdin, stdout, BufRead, BufReader, Read, Write};
 #[cfg(unix)]
@@ -332,4 +333,45 @@ impl ToString for YageEncodedValue {
         let r = recipients.join(",");
         format!("yage[{data}|r:{r}]")
     }
+}
+
+fn get_yaml_recipients_string(value: &sy::Value) -> HashSet<String> {
+    let mut output: HashSet<String> = HashSet::default();
+    match value {
+        sy::Value::Mapping(mapping) => {
+            for (_, value) in mapping {
+                let recipients = get_yaml_recipients_string(value);
+                output.extend(recipients);
+            }
+            output
+        }
+        sy::Value::Sequence(sequence) => {
+            for value in sequence {
+                let recipients = get_yaml_recipients_string(value);
+                output.extend(recipients);
+            }
+            output
+        }
+        sy::Value::String(s) => {
+            if let Ok(yev) = YageEncodedValue::from_str(s) {
+                output.extend(yev.recipients);
+            }
+            output
+        }
+        _ => output,
+    }
+}
+
+pub fn get_yaml_recipients(value: &sy::Value) -> Result<Vec<x25519::Recipient>> {
+    let mut recipients: Vec<_> = get_yaml_recipients_string(value).into_iter().collect();
+    recipients.sort();
+    let mut output: Vec<x25519::Recipient> = Vec::with_capacity(recipients.len());
+    for s in recipients {
+        let r = x25519::Recipient::from_str(&s).map_err(|msg| YageError::RecipientParse {
+            recipient: s,
+            message: msg.to_owned(),
+        })?;
+        output.push(r);
+    }
+    Ok(output)
 }
