@@ -120,7 +120,11 @@ pub fn decrypt_yaml(value: &sy::Value, identities: &[x25519::Identity]) -> Resul
 pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Value> {
     if is_yage_encoded(s) {
         // remove the yage[…] prefix and suffix
-        let encoded = s.substring(5, s.len() - 1);
+        let payload = s.substring(5, s.len() - 1);
+        let encoded = payload
+            .split('|')
+            .nth(0)
+            .ok_or(YageError::InvalidValueEncoding)?;
         let encrypted = BASE64_STANDARD.decode(encoded)?;
         let decryptor = match age::Decryptor::new(&encrypted[..])? {
             age::Decryptor::Recipients(d) => Ok(d),
@@ -195,18 +199,24 @@ pub fn encrypt_yaml(value: &sy::Value, recipients: &[x25519::Recipient]) -> Resu
 pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Result<String> {
     type Recipients = Vec<Box<dyn age::Recipient + Send + 'static>>;
     let data = sy::to_string(value)?;
-    let recipients = recipients
+    let recipients_dyn = recipients
         .iter()
         .map(|r| Box::new(r.clone()) as Box<dyn age::Recipient + Send + 'static>)
         .collect::<Recipients>();
     let mut encrypted = vec![];
-    let encryptor = age::Encryptor::with_recipients(recipients).ok_or(YageError::NoRecipients)?;
+    let encryptor =
+        age::Encryptor::with_recipients(recipients_dyn).ok_or(YageError::NoRecipients)?;
     // let mut armored = ArmoredWriter::wrap_output(&mut encrypted, Format::AsciiArmor)?;
     let mut writer = encryptor.wrap_output(&mut encrypted)?;
     writer.write_all(data.as_bytes())?;
     writer.finish()?;
     let encoded = BASE64_STANDARD.encode(&encrypted);
-    Ok(format!("yage[{encoded}]"))
+    let r = recipients
+        .iter()
+        .map(|r| r.to_string())
+        .collect::<Vec<String>>()
+        .join(",");
+    Ok(format!("yage[{encoded}|r:{r}]"))
 }
 
 pub fn load_recipients(

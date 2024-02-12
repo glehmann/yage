@@ -43,6 +43,8 @@ pub enum YageError {
     KeyNotFound,
     #[error("stdin can't be modified in place")]
     InPlaceStdin,
+    #[error("invalid value encoding")]
+    InvalidValueEncoding,
 }
 
 /// Alias for a `Result` with the error type `AppError`.
