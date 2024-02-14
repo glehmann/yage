@@ -2125,6 +2125,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "xtask"
+version = "0.4.0"
+dependencies = [
+ "clap",
+ "clap-markdown",
+ "clap_mangen",
+ "yage",
+]
+
+[[package]]
 name = "yage"
 version = "0.4.0"
 dependencies = [
@@ -2133,10 +2143,8 @@ dependencies = [
  "assert_fs",
  "base64",
  "clap",
- "clap-markdown",
  "clap-verbosity-flag",
  "clap_complete",
- "clap_mangen",
  "escargot",
  "fs-mistrust",
  "lipsum",

@@ -19,3 +19,7 @@ rustflags = [
   "-C", "target-feature=+crt-static",
   "-C", "link-self-contained=yes",
 ]
+
+[alias]
+cliref = "run --package xtask -- cli-references"
+xtask = "run --package xtask --"
