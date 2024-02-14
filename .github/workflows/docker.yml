@@ -18,7 +18,8 @@ jobs:
     env:
       CROSS_VERSION: v0.2.5
     steps:
-      - uses: easimon/maximize-build-space@master
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
 
       - name: Checkout repository
         uses: actions/checkout@v4
