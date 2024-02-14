@@ -36,13 +36,7 @@ cross:
     ELSE IF [ "$TARGETPLATFORM" = "linux/s390x" ]
         SET target="s390x-unknown-linux-gnu"
     END
-    # RUN rustup target add $target
-    WITH DOCKER --pull ghcr.io/cross-rs/$target:$CROSS_VERSION
-        RUN --mount=$EARTHLY_RUST_CARGO_HOME_CACHE \
-            --mount=$EARTHLY_RUST_TARGET_CACHE \
-            rm -rf target/release \
-            && cross build --target $target --release
-    END
+    DO rust+CROSS --target=$target
     DO rust+COPY_OUTPUT --output=".+/release/[^\./]+"
     SAVE ARTIFACT /app/target/$target/release/yage
 
