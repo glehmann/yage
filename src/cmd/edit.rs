@@ -1,17 +1,72 @@
 use std::fs::File;
+use std::path::PathBuf;
 use std::process::Command;
 
+use clap::Args;
 use serde_yaml as sy;
 use tempfile::tempdir;
 use treediff::tools::{ChangeType, Recorder};
 use treediff::value::Key;
 use treediff::Mutable;
 
-use crate::cli::EditArgs;
+use crate::cli::ENV_PATH_SEP;
 use crate::error::{IOResultExt, Result, YageError};
 use crate::{
     create_private_file, decrypt_yaml, encrypt_yaml, get_yaml_recipients, load_identities,
 };
+
+/// Edit an encrypted YAML file
+///
+/// The file is decrypted with the specified keys and open in a text editor. The user can edit the file
+/// and save it. The values are then encrypted with the same keys and the recipients, and saved in the
+/// original file.
+///
+/// The YAML file may contain some unencrypted values, and some encrypted values. The encrypted values
+/// are decrypted before the edition and all the values are encrypted after the edition.
+///
+/// Only the modified values are encrypted, the other values are left unchanged.
+#[derive(Args, Debug)]
+pub struct EditArgs {
+    /// The editor command to use
+    #[clap(short, long, default_value = "vim", env = "EDITOR")]
+    pub editor: String,
+
+    /// Decrypt with the specified key
+    ///
+    /// Note that passing private keys as arguments or environment variables may expose them to other users
+    /// on the system, and store them in your shell history. As a consequence the --key option and YAGE_KEY
+    /// environment variable should only be used in a secure environment.
+    ///
+    /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
+    #[clap(
+        short,
+        long = "key",
+        name = "KEY",
+        env = "YAGE_KEY",
+        value_delimiter = ','
+    )]
+    pub keys: Vec<String>,
+
+    /// Decrypt with the key at in this file
+    ///
+    /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY_FILE environment variable separated by the system path separator.
+    #[clap(
+        short = 'K',
+        long = "key-file",
+        name = "KEY_FILE",
+        env = "YAGE_KEY_FILE",
+        value_delimiter = ENV_PATH_SEP,
+    )]
+    pub key_files: Vec<PathBuf>,
+
+    /// The encrypted YAML file to edit
+    #[arg()]
+    pub file: PathBuf,
+}
 
 pub fn edit(args: &EditArgs) -> Result<i32> {
     let identities = load_identities(&args.keys, &args.key_files)?;

@@ -12,13 +12,13 @@ pub mod cmd {
     mod env;
     mod keygen;
     mod pubkey;
-    pub use check::check;
-    pub use decrypt::decrypt;
-    pub use edit::edit;
-    pub use encrypt::encrypt;
-    pub use env::env;
-    pub use keygen::keygen;
-    pub use pubkey::pubkey;
+    pub use check::*;
+    pub use decrypt::*;
+    pub use edit::*;
+    pub use encrypt::*;
+    pub use env::*;
+    pub use keygen::*;
+    pub use pubkey::*;
 }
 
 use std::fs::{File, OpenOptions};

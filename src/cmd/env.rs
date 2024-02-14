@@ -1,11 +1,69 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::process::Command;
 
+use clap::Args;
 use serde_yaml as sy;
 
-use crate::cli::EnvArgs;
+use crate::cli::ENV_PATH_SEP;
 use crate::error::{Result, YageError};
 use crate::{decrypt_yaml, load_identities, stdin_or_file};
+
+/// Execute a command with the environment from the encrypted YAML file
+///
+/// The YAML file must contain a map with string keys and values. The keys are the environment
+/// variable names, and the values are the environment variable values.
+/// Other more complex YAML structures are not supported.
+#[derive(Args, Debug)]
+pub struct EnvArgs {
+    /// Start with an empty environment
+    #[clap(short, long, default_value_t = false)]
+    pub ignore_environment: bool,
+
+    /// Decrypt with the specified key
+    ///
+    /// Note that passing private keys as arguments or environment variables may expose them to other users
+    /// on the system, and store them in your shell history. As a consequence the --key option and YAGE_KEY
+    /// environment variable should only be used in a secure environment.
+    ///
+    /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
+    #[clap(
+        short,
+        long = "key",
+        name = "KEY",
+        env = "YAGE_KEY",
+        value_delimiter = ','
+    )]
+    pub keys: Vec<String>,
+
+    /// Decrypt with the key at PATH
+    ///
+    /// May be repeated.
+    ///
+    /// Multiple values may be passed in the YAGE_KEY_FILE environment variable separated by the system path separator.
+    #[clap(
+        short = 'K',
+        long = "key-file",
+        name = "KEY_FILE",
+        env = "YAGE_KEY_FILE",
+        value_delimiter = ENV_PATH_SEP,
+    )]
+    pub key_files: Vec<PathBuf>,
+
+    /// The YAML file to decrypt
+    #[arg()]
+    pub file: PathBuf,
+
+    /// The command to run
+    #[arg()]
+    pub command: String,
+
+    /// The command arguments
+    #[arg()]
+    pub args: Vec<String>,
+}
 
 pub fn env(args: &EnvArgs) -> Result<i32> {
     let identities = load_identities(&args.keys, &args.key_files)?;

@@ -1,8 +1,19 @@
+use std::path::PathBuf;
+
+use clap::{arg, command, Args};
 use serde_yaml as sy;
 
-use crate::cli::CheckArgs;
 use crate::error::Result;
 use crate::{check_encrypted, check_recipients, stdin_or_file, EncryptionStatus};
+
+/// Check the encryption status of a YAML file
+#[derive(Args, Debug)]
+#[command(alias = "status")]
+pub struct CheckArgs {
+    /// The YAML files to check
+    #[arg()]
+    pub files: Vec<PathBuf>,
+}
 
 pub fn check(args: &CheckArgs) -> Result<i32> {
     let mut ok: bool = true;
