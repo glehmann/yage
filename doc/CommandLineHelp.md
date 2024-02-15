@@ -12,6 +12,7 @@ This document contains the help content for the `yage` command-line program.
 * [`yage env`↴](#yage-env)
 * [`yage keygen`↴](#yage-keygen)
 * [`yage pubkey`↴](#yage-pubkey)
+* [`yage recipients`↴](#yage-recipients)
 
 ## `yage`
 
@@ -28,6 +29,7 @@ A simple tool to manage encrypted secrets in YAML files with age encryption
 * `env` — Execute a command with the environment from the encrypted YAML file
 * `keygen` — Generate a new age key
 * `pubkey` — Convert private age keys to their public key
+* `recipients` — List the recipients of the encrypted data
 
 ###### **Options:**
 
@@ -194,6 +196,30 @@ The input key and output public key are in the age format, which is compatible w
 
 * `-k`, `--key <KEY>` — The private keys
 * `-o`, `--output <OUTPUT>` — The output path to the public key file
+
+  Default value: `-`
+
+
+
+## `yage recipients`
+
+List the recipients of the encrypted data
+
+**Usage:** `yage recipients [OPTIONS] [FILES]...`
+
+###### **Arguments:**
+
+* `<FILES>` — The encrypted YAML files
+
+###### **Options:**
+
+* `-r`, `--only-recipients` — Only show the recipients' public keys
+
+  Default value: `false`
+
+  Possible values: `true`, `false`
+
+* `-o`, `--output <OUTPUT>` — The output path
 
   Default value: `-`
 

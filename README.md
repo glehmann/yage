@@ -85,14 +85,15 @@ A simple tool to manage encrypted secrets in YAML files with age encryption
 Usage: yage [OPTIONS] [COMMAND]
 
 Commands:
-  check    Check the encryption status of a YAML file
-  decrypt  Decrypt the values in a YAML file
-  edit     Edit an encrypted YAML file
-  encrypt  Encrypt the values in a YAML file
-  env      Execute a command with the environment from the encrypted YAML file
-  keygen   Generate a new age key
-  pubkey   Convert private age keys to their public key
-  help     Print this message or the help of the given subcommand(s)
+  check       Check the encryption status of a YAML file
+  decrypt     Decrypt the values in a YAML file
+  edit        Edit an encrypted YAML file
+  encrypt     Encrypt the values in a YAML file
+  env         Execute a command with the environment from the encrypted YAML file
+  keygen      Generate a new age key
+  pubkey      Convert private age keys to their public key
+  recipients  List the recipients of the encrypted data
+  help        Print this message or the help of the given subcommand(s)
 
 Options:
       --completion <SHELL>  Generate the completion code for this shell [possible
