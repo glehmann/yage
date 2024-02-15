@@ -193,6 +193,15 @@ fn encrypt_stdin_in_place() {
 }
 
 #[test]
+fn encrypt_multiple_files_no_in_place() {
+    yage_cmd!("encrypt", "foo.yaml", "bar.yaml")
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(contains("error: invalid number of input files"));
+}
+
+#[test]
 fn encrypt_partially_encrypted() {
     let tmp = temp_dir();
     let (key_path, pub_path) = create_key(&tmp);

@@ -80,6 +80,15 @@ fn decrypt_stdin_in_place() {
 }
 
 #[test]
+fn decrypt_multiple_files_no_in_place() {
+    yage_cmd!("decrypt", "foo.yaml", "bar.yaml")
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(contains("error: invalid number of input files"));
+}
+
+#[test]
 fn decrypt_key_from_env() {
     let (tmp, key_path1, _, yaml_path, encrypted_path) = generate_encrypted_file();
     let (key_path2, _) = create_key(&tmp);
