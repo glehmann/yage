@@ -367,3 +367,13 @@ pub fn get_yaml_recipients(value: &sy::Value) -> Result<Vec<x25519::Recipient>> 
     }
     Ok(output)
 }
+
+pub fn read_yaml(path: &Path) -> Result<sy::Value> {
+    debug!("loading yaml file: {path:?}");
+    let input = stdin_or_file(path)?;
+    let value: sy::Value = sy::from_reader(input)?;
+    if !check_recipients(&value) {
+        warn!("{}: inconsistent recipients", path.to_string_lossy());
+    }
+    Ok(value)
+}

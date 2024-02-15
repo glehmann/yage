@@ -6,7 +6,7 @@ use serde_yaml as sy;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{Result, YageError};
-use crate::{decrypt_yaml, load_identities, stdin_or_file, stdout_or_file};
+use crate::{decrypt_yaml, load_identities, read_yaml, stdout_or_file};
 
 /// Decrypt the values in a YAML file
 #[derive(Args, Debug)]
@@ -62,8 +62,7 @@ pub fn decrypt(args: &DecryptArgs) -> Result<i32> {
     }
     let identities = load_identities(&args.keys, &args.key_files)?;
     for file in &args.files {
-        debug!("loading yaml file: {file:?}");
-        let input_data: sy::Value = sy::from_reader(stdin_or_file(file)?)?;
+        let input_data = read_yaml(file)?;
         let output_data = decrypt_yaml(&input_data, &identities)?;
         let output = stdout_or_file(if args.in_place { file } else { &args.output })?;
         sy::to_writer(output, &output_data)?;

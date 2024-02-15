@@ -7,7 +7,7 @@ use serde_yaml as sy;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{Result, YageError};
-use crate::{decrypt_yaml, load_identities, stdin_or_file};
+use crate::{decrypt_yaml, load_identities, read_yaml};
 
 /// Execute a command with the environment from the encrypted YAML file
 ///
@@ -61,8 +61,7 @@ pub struct EnvArgs {
 
 pub fn env(args: &EnvArgs) -> Result<i32> {
     let identities = load_identities(&args.keys, &args.key_files)?;
-    debug!("loading yaml file: {:?}", args.file);
-    let input_data: sy::Value = sy::from_reader(stdin_or_file(&args.file)?)?;
+    let input_data = read_yaml(&args.file)?;
     let output_data = decrypt_yaml(&input_data, &identities)?;
     let env_data = build_env(&output_data)?;
     for (key, value) in &env_data {

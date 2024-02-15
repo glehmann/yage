@@ -3,10 +3,9 @@ use std::path::PathBuf;
 
 use age::x25519;
 use clap::Args;
-use serde_yaml as sy;
 
 use crate::error::{IOResultExt, Result};
-use crate::{get_yaml_recipients, stdin_or_file, stdout_or_file};
+use crate::{get_yaml_recipients, read_yaml, stdout_or_file};
 
 /// List the recipients of the encrypted data
 #[derive(Args, Debug)]
@@ -34,9 +33,7 @@ pub fn recipients(args: &RecipientsArgs) -> Result<i32> {
     if args.only_recipients {
         let mut recipients: HashSet<x25519::Recipient> = HashSet::new();
         for file in &args.files {
-            let input_data = sy::from_reader(stdin_or_file(file)?)?;
-            let file_recipients = get_yaml_recipients(&input_data)?;
-            recipients.extend(file_recipients);
+            recipients.extend(get_yaml_recipients(&read_yaml(file)?)?);
         }
         let mut recipients: Vec<_> = recipients.iter().map(|r| r.to_string()).collect();
         recipients.sort();
@@ -45,8 +42,7 @@ pub fn recipients(args: &RecipientsArgs) -> Result<i32> {
         }
     } else {
         for file in &args.files {
-            let input_data = sy::from_reader(stdin_or_file(file)?)?;
-            let recipients = get_yaml_recipients(&input_data)?;
+            let recipients = get_yaml_recipients(&read_yaml(file)?)?;
             let file = file.to_string_lossy();
             for recipient in recipients {
                 writeln!(output, "{file}: {recipient}").path_ctx(&args.output)?;

@@ -6,7 +6,7 @@ use serde_yaml as sy;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{Result, YageError};
-use crate::{encrypt_yaml, get_yaml_recipients, load_recipients, stdin_or_file, stdout_or_file};
+use crate::{encrypt_yaml, get_yaml_recipients, load_recipients, read_yaml, stdout_or_file};
 
 /// Encrypt the values in a YAML file
 ///
@@ -77,8 +77,7 @@ pub fn encrypt(args: &EncryptArgs) -> Result<i32> {
     }
     let recipients = load_recipients(&args.recipients, &args.recipient_files)?;
     for file in &args.files {
-        debug!("loading yaml file: {file:?}");
-        let input_data: sy::Value = sy::from_reader(stdin_or_file(file)?)?;
+        let input_data = read_yaml(file)?;
         let yaml_recipients = get_yaml_recipients(&input_data)?;
         let recipients = if recipients.is_empty() {
             &yaml_recipients

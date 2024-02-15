@@ -13,6 +13,7 @@ use crate::cli::ENV_PATH_SEP;
 use crate::error::{IOResultExt, Result, YageError};
 use crate::{
     create_private_file, decrypt_yaml, encrypt_yaml, get_yaml_recipients, load_identities,
+    read_yaml,
 };
 
 /// Edit an encrypted YAML file
@@ -63,9 +64,11 @@ pub struct EditArgs {
 }
 
 pub fn edit(args: &EditArgs) -> Result<i32> {
+    if args.file == PathBuf::from("-") {
+        return Err(YageError::InPlaceStdin);
+    }
     let identities = load_identities(&args.keys, &args.key_files)?;
-    debug!("loading yaml file: {:?}", args.file);
-    let input_data: sy::Value = sy::from_reader(File::open(&args.file).path_ctx(&args.file)?)?;
+    let input_data = read_yaml(&args.file)?;
     let recipients = get_yaml_recipients(&input_data)?;
     if recipients.is_empty() {
         return Err(YageError::NoRecipients);
@@ -85,7 +88,7 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
 
     run_editor(&args.editor, &temp_file)?;
 
-    let edited_data: sy::Value = sy::from_reader(File::open(&temp_file)?)?;
+    let edited_data = read_yaml(&temp_file)?;
     // find what has not changed, and keep the encrypted data unchanged. That data is encrypted
     // with a nonce that make it appear different every time it is encrypted, so we avoid
     // encrypting it again. This way the data that has not changed isn't changed in its
