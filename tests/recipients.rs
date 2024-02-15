@@ -10,16 +10,8 @@ fn recipients_to_stdout() {
     let (_tmp, _, pub_path1, _, encrypted_path1) = generate_encrypted_file();
     let (_tmp, _, pub_path2, _, encrypted_path2) = generate_encrypted_file();
     yage!("recipients", &encrypted_path1, &encrypted_path2)
-        .stdout(contains(format!(
-            "{}: {}",
-            encrypted_path1.to_string_lossy(),
-            read(&pub_path1)
-        )))
-        .stdout(contains(format!(
-            "{}: {}",
-            encrypted_path2.to_string_lossy(),
-            read(&pub_path2)
-        )))
+        .stdout(contains(format!("{}: {}", encrypted_path1.to_string_lossy(), read(&pub_path1))))
+        .stdout(contains(format!("{}: {}", encrypted_path2.to_string_lossy(), read(&pub_path2))))
         .stderr(is_empty());
 }
 
@@ -28,15 +20,9 @@ fn recipients_to_file() {
     let (_tmp, _, pub_path1, _, encrypted_path1) = generate_encrypted_file();
     let (tmp, _, pub_path2, _, encrypted_path2) = generate_encrypted_file();
     let recipients_path = tmp.child("recipients.txt");
-    yage!(
-        "recipients",
-        &encrypted_path1,
-        &encrypted_path2,
-        "--output",
-        &recipients_path
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage!("recipients", &encrypted_path1, &encrypted_path2, "--output", &recipients_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
     assert_eq!(
         read(&recipients_path),
         format!(

@@ -18,16 +18,9 @@ const EDITOR: &str = "bash -c 'echo hop: hop >> $0'";
 fn edit_key_file_from_args() {
     let (_tmp, key_path, _, _, encrypted_path) = generate_encrypted_file();
     let before_edit_data = read(&encrypted_path);
-    yage!(
-        "edit",
-        "--editor",
-        EDITOR,
-        "--key-file",
-        &key_path,
-        &encrypted_path
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage!("edit", "--editor", EDITOR, "--key-file", &key_path, &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
     let after_edit_data = read(&encrypted_path);
     assert_ne!(before_edit_data, after_edit_data);
     assert!(after_edit_data.starts_with(&before_edit_data));
@@ -104,9 +97,7 @@ fn edit_empty() {
         .assert()
         .failure()
         .stdout(is_empty())
-        .stderr(contains(
-            "error: the following required arguments were not provided",
-        ));
+        .stderr(contains("error: the following required arguments were not provided"));
 }
 
 #[test]

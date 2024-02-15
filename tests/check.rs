@@ -25,19 +25,10 @@ fn check_encrypted() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
-    yage!("check", &encrypted_path)
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
         .stdout(is_empty())
         .stderr(is_empty());
+    yage!("check", &encrypted_path).stdout(is_empty()).stderr(is_empty());
 }
 
 #[test]
@@ -47,19 +38,10 @@ fn check_mixed() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
-    yage!("check", &encrypted_path)
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
         .stdout(is_empty())
         .stderr(is_empty());
+    yage!("check", &encrypted_path).stdout(is_empty()).stderr(is_empty());
     // append some data to the encrypted file
     {
         OpenOptions::new()
@@ -83,14 +65,7 @@ fn check_inconsistent_recipients() {
     let yaml_path2 = tmp.child("file2.yaml");
     write(&yaml_path2, "auie: tsrn\n");
     let encrypted_path2 = tmp.child("file2.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path2,
-        &yaml_path2,
-        "-o",
-        &encrypted_path2
-    );
+    yage!("encrypt", "-R", &pub_path2, &yaml_path2, "-o", &encrypted_path2);
     // append some data to the encrypted file
     {
         OpenOptions::new()

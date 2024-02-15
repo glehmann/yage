@@ -40,13 +40,7 @@ pub struct EditArgs {
     /// May be repeated.
     ///
     /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
-    #[clap(
-        short,
-        long = "key",
-        name = "KEY",
-        env = "YAGE_KEY",
-        value_delimiter = ','
-    )]
+    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY", value_delimiter = ',')]
     pub keys: Vec<String>,
 
     /// Decrypt with the key at in this file
@@ -81,9 +75,8 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
     // original file, but in a temporary directory. This way the user knows which file he is
     // editing if its editor shows the file name.
     let dir = tempdir()?;
-    let filename = args.file.file_name().ok_or(YageError::InvalidFileName {
-        path: args.file.clone(),
-    })?;
+    let filename =
+        args.file.file_name().ok_or(YageError::InvalidFileName { path: args.file.clone() })?;
     let temp_file = dir.path().join(filename);
     {
         let output = create_private_file(&temp_file)?;

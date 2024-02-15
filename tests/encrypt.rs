@@ -48,16 +48,9 @@ fn encrypt_to_file() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
     let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
     let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
@@ -137,14 +130,8 @@ fn encrypt_recipients_from_env() {
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
     yage_cmd!("encrypt", &yaml_path, "--output", &encrypted_path)
-        .env(
-            "YAGE_RECIPIENT",
-            format!("{},{}", read(&pub_path1).trim(), read(&pub_path2).trim()),
-        )
-        .env(
-            "YAGE_RECIPIENT_FILE",
-            std::env::join_paths(vec![&pub_path3, &pub_path4]).unwrap(),
-        )
+        .env("YAGE_RECIPIENT", format!("{},{}", read(&pub_path1).trim(), read(&pub_path2).trim()))
+        .env("YAGE_RECIPIENT_FILE", std::env::join_paths(vec![&pub_path3, &pub_path4]).unwrap())
         .assert()
         .success()
         .stdout(is_empty())
@@ -212,23 +199,13 @@ fn encrypt_partially_encrypted() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
     let raw_encrypted_data = read(&encrypted_path);
     dbg!(&raw_encrypted_data);
     let encrypted_data: sy::Value = sy::from_str(&raw_encrypted_data).unwrap();
-    assert_eq!(
-        yage::check_encrypted(&encrypted_data),
-        EncryptionStatus::Encrypted
-    );
+    assert_eq!(yage::check_encrypted(&encrypted_data), EncryptionStatus::Encrypted);
     // append some data to the encrypted file, then try to encrypt it again
     OpenOptions::new()
         .append(true)
@@ -241,25 +218,15 @@ fn encrypt_partially_encrypted() {
         EncryptionStatus::Mixed
     );
     let encrypted_path2 = tmp.child("file2.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &encrypted_path,
-        "-o",
-        &encrypted_path2
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage!("encrypt", "-R", &pub_path, &encrypted_path, "-o", &encrypted_path2)
+        .stdout(is_empty())
+        .stderr(is_empty());
     // make sure we haven't changed the already encrypted stuff
     assert!(read(&encrypted_path2).starts_with(&raw_encrypted_data));
     // and verify we can decrypt the new file
     let raw_encrypted_data2 = read(&encrypted_path2);
     let encrypted_data2: sy::Value = sy::from_str(&raw_encrypted_data2).unwrap();
-    assert_eq!(
-        yage::check_encrypted(&encrypted_data2),
-        EncryptionStatus::Encrypted
-    );
+    assert_eq!(yage::check_encrypted(&encrypted_data2), EncryptionStatus::Encrypted);
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
     assert!(yage::decrypt_yaml(&encrypted_data2, &identities).is_ok());
 }
@@ -271,23 +238,13 @@ fn encrypt_partially_encrypted_other_recipient() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path1,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage!("encrypt", "-R", &pub_path1, &yaml_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
     let raw_encrypted_data = read(&encrypted_path);
     dbg!(&raw_encrypted_data);
     let encrypted_data: sy::Value = sy::from_str(&raw_encrypted_data).unwrap();
-    assert_eq!(
-        yage::check_encrypted(&encrypted_data),
-        EncryptionStatus::Encrypted
-    );
+    assert_eq!(yage::check_encrypted(&encrypted_data), EncryptionStatus::Encrypted);
     // append some data to the encrypted file, then try to encrypt it again
     OpenOptions::new()
         .append(true)

@@ -10,15 +10,11 @@ fn pubkey_to_file() {
     let tmp = temp_dir();
     let (key_path, pub_path) = create_key(&tmp);
     let output_path = tmp.child("private.pub");
-    yage!("pubkey", &key_path, "--output", &output_path)
-        .stdout(is_empty())
-        .stderr(is_empty());
+    yage!("pubkey", &key_path, "--output", &output_path).stdout(is_empty()).stderr(is_empty());
     assert_eq!(read(&output_path), read(&pub_path));
     // again with the short option
     let output_path = tmp.child("private2.pub");
-    yage!("pubkey", &key_path, "-o", &output_path)
-        .stdout(is_empty())
-        .stderr(is_empty());
+    yage!("pubkey", &key_path, "-o", &output_path).stdout(is_empty()).stderr(is_empty());
     assert_eq!(read(&output_path), read(&pub_path));
 }
 
@@ -35,14 +31,8 @@ fn pubkey_from_env() {
     let (key_path3, pub_path3) = create_key(&tmp);
     let (key_path4, pub_path4) = create_key(&tmp);
     yage_cmd!("pubkey")
-        .env(
-            "YAGE_KEY",
-            format!("{},{}", read(&key_path1).trim(), read(&key_path2).trim()),
-        )
-        .env(
-            "YAGE_KEY_FILE",
-            std::env::join_paths(vec![&key_path3, &key_path4]).unwrap(),
-        )
+        .env("YAGE_KEY", format!("{},{}", read(&key_path1).trim(), read(&key_path2).trim()))
+        .env("YAGE_KEY_FILE", std::env::join_paths(vec![&key_path3, &key_path4]).unwrap())
         .assert()
         .success()
         .stdout(contains(format!(

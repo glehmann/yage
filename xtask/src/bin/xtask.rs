@@ -41,11 +41,8 @@ fn manpage() -> std::io::Result<()> {
     let command = yage::cli::Cli::command();
     let out_dir: PathBuf = "doc".into();
     let name = command.get_name();
-    let name = if name == "yage" {
-        "yage.1".to_owned()
-    } else {
-        format!("yage-{}.1", command.get_name())
-    };
+    let name =
+        if name == "yage" { "yage.1".to_owned() } else { format!("yage-{}.1", command.get_name()) };
     let fname = out_dir.join(name);
     let man = clap_mangen::Man::new(command);
     let mut buffer: Vec<u8> = Default::default();

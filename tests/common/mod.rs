@@ -123,10 +123,7 @@ pub fn read(path: &dyn ToPath) -> String {
 }
 
 pub fn write(path: &dyn ToPath, content: &str) {
-    File::create(path.path())
-        .unwrap()
-        .write_all(content.as_bytes())
-        .unwrap();
+    File::create(path.path()).unwrap().write_all(content.as_bytes()).unwrap();
 }
 
 pub fn temp_dir() -> TempDir {
@@ -175,21 +172,8 @@ pub fn generate_encrypted_file() -> (TempDir, PathBuf, PathBuf, PathBuf, PathBuf
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
-    (
-        tmp,
-        key_path,
-        pub_path,
-        yaml_path.path().to_owned(),
-        encrypted_path.path().to_owned(),
-    )
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+    (tmp, key_path, pub_path, yaml_path.path().to_owned(), encrypted_path.path().to_owned())
 }

@@ -7,10 +7,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum YageError {
     #[error("{path}: {source}")]
-    PathIo {
-        path: PathBuf,
-        source: std::io::Error,
-    },
+    PathIo { path: PathBuf, source: std::io::Error },
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
@@ -58,9 +55,6 @@ pub trait IOResultExt<T> {
 
 impl<T> IOResultExt<T> for io::Result<T> {
     fn path_ctx<P: Into<PathBuf>>(self, path: P) -> Result<T> {
-        self.map_err(|source| YageError::PathIo {
-            source,
-            path: path.into(),
-        })
+        self.map_err(|source| YageError::PathIo { source, path: path.into() })
     }
 }

@@ -14,14 +14,7 @@ fn env_key_file_from_args() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    );
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path);
     yage!("env", "--key-file", &key_path, &encrypted_path, "env")
         .stdout(contains("foo=bar"))
         .stderr(is_empty());
@@ -38,23 +31,10 @@ fn env_key_from_args() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    );
-    yage!(
-        "env",
-        "--key",
-        read(&key_path).trim(),
-        &encrypted_path,
-        "env"
-    )
-    .stdout(contains("foo=bar"))
-    .stderr(is_empty());
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path);
+    yage!("env", "--key", read(&key_path).trim(), &encrypted_path, "env")
+        .stdout(contains("foo=bar"))
+        .stderr(is_empty());
     // again with short option
     yage!("env", "-k", read(&key_path).trim(), &encrypted_path, "env")
         .stdout(contains("foo=bar"))
@@ -68,14 +48,7 @@ fn env_key_from_env() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    );
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path);
     yage_cmd!("env", &encrypted_path, "env")
         .env("YAGE_KEY", read(&key_path).trim())
         .assert()
@@ -91,14 +64,7 @@ fn env_key_file_from_env() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    );
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path);
     yage_cmd!("env", &encrypted_path, "env")
         .env("YAGE_KEY_FILE", &key_path)
         .assert()
@@ -114,14 +80,7 @@ fn env_key_from_stdin() {
     let yaml_path = tmp.child("file.yaml");
     write(&yaml_path, YAML_CONTENT);
     let encrypted_path = tmp.child("file.enc.yaml");
-    yage!(
-        "encrypt",
-        "-R",
-        &pub_path,
-        &yaml_path,
-        "-o",
-        &encrypted_path
-    );
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path);
     yage_cmd!("env", "-K", "-", &encrypted_path, "env")
         .write_stdin(read(&key_path))
         .assert()
@@ -136,9 +95,7 @@ fn env_empty() {
         .assert()
         .failure()
         .stdout(is_empty())
-        .stderr(contains(
-            "error: the following required arguments were not provided",
-        ));
+        .stderr(contains("error: the following required arguments were not provided"));
 }
 
 #[test]
@@ -147,7 +104,5 @@ fn env_no_command() {
         .assert()
         .failure()
         .stdout(is_empty())
-        .stderr(contains(
-            "error: the following required arguments were not provided",
-        ));
+        .stderr(contains("error: the following required arguments were not provided"));
 }

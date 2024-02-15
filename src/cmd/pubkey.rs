@@ -30,13 +30,7 @@ pub struct PubkeyArgs {
     /// May be repeated.
     ///
     /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
-    #[clap(
-        short,
-        long = "key",
-        name = "KEY",
-        env = "YAGE_KEY",
-        value_delimiter = ','
-    )]
+    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY", value_delimiter = ',')]
     pub keys: Vec<String>,
 
     /// The output path to the public key file

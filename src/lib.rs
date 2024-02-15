@@ -77,11 +77,7 @@ pub fn stdin_or_private_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
     } else {
         let br: BufReader<Box<dyn Read>> =
             BufReader::new(Box::new(File::open(path).path_ctx(path)?));
-        if let Err(e) = fs_mistrust::Mistrust::new()
-            .verifier()
-            .require_file()
-            .check(path)
-        {
+        if let Err(e) = fs_mistrust::Mistrust::new().verifier().require_file().check(path) {
             warn!("file {path:?} is not private: {e}");
         }
         br
@@ -207,10 +203,7 @@ pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Res
     let mut recipients: Vec<_> = recipients.iter().map(|r| r.to_string()).collect();
     recipients.sort();
     recipients.dedup();
-    let yev = YageEncodedValue {
-        data: BASE64_STANDARD.encode(&encrypted),
-        recipients,
-    };
+    let yev = YageEncodedValue { data: BASE64_STANDARD.encode(&encrypted), recipients };
     Ok(yev.to_string())
 }
 
@@ -222,11 +215,9 @@ pub fn load_recipients(
     // read the recipient from the command line
     for recipient in recipients.iter() {
         debug!("loading recipient: {recipient}");
-        let recipient =
-            x25519::Recipient::from_str(recipient).map_err(|e| YageError::RecipientParse {
-                recipient: recipient.to_owned(),
-                message: e.into(),
-            })?;
+        let recipient = x25519::Recipient::from_str(recipient).map_err(|e| {
+            YageError::RecipientParse { recipient: recipient.to_owned(), message: e.into() }
+        })?;
         res.push(recipient);
     }
     // read the recipient from the files
@@ -235,11 +226,9 @@ pub fn load_recipients(
         let input = stdin_or_file(path)?;
         for recipient in input.lines() {
             let recipient = recipient.path_ctx(path)?;
-            let recipient =
-                x25519::Recipient::from_str(&recipient).map_err(|e| YageError::RecipientParse {
-                    recipient: recipient.to_owned(),
-                    message: e.into(),
-                })?;
+            let recipient = x25519::Recipient::from_str(&recipient).map_err(|e| {
+                YageError::RecipientParse { recipient: recipient.to_owned(), message: e.into() }
+            })?;
             res.push(recipient);
         }
     }
@@ -303,14 +292,12 @@ fn check_encrypted_iter<'a>(iter: impl Iterator<Item = &'a sy::Value>) -> Encryp
 
 pub fn flatten_yage_encrypted_values(value: &sy::Value) -> Vec<YageEncodedValue> {
     match value {
-        sy::Value::Mapping(mapping) => mapping
-            .iter()
-            .flat_map(|(_, v)| flatten_yage_encrypted_values(v))
-            .collect(),
-        sy::Value::Sequence(sequence) => sequence
-            .iter()
-            .flat_map(flatten_yage_encrypted_values)
-            .collect(),
+        sy::Value::Mapping(mapping) => {
+            mapping.iter().flat_map(|(_, v)| flatten_yage_encrypted_values(v)).collect()
+        }
+        sy::Value::Sequence(sequence) => {
+            sequence.iter().flat_map(flatten_yage_encrypted_values).collect()
+        }
         sy::Value::String(s) => match YageEncodedValue::from_str(s) {
             Ok(yev) => vec![yev],
             Err(_) => vec![],

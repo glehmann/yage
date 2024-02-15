@@ -39,19 +39,12 @@ fn decrypt_to_file() {
 fn decrypt_from_stdin() {
     let (tmp, key_path, _, yaml_path, encrypted_path) = generate_encrypted_file();
     let decrypted_path = tmp.child("file.dec.yaml");
-    yage_cmd!(
-        "decrypt",
-        "--key",
-        read(&key_path).trim(),
-        "-",
-        "--output",
-        &decrypted_path
-    )
-    .write_stdin(read(&encrypted_path))
-    .assert()
-    .success()
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage_cmd!("decrypt", "--key", read(&key_path).trim(), "-", "--output", &decrypted_path)
+        .write_stdin(read(&encrypted_path))
+        .assert()
+        .success()
+        .stdout(is_empty())
+        .stderr(is_empty());
     assert_eq!(read(&decrypted_path), read(&yaml_path));
 }
 
@@ -59,34 +52,21 @@ fn decrypt_from_stdin() {
 fn decrypt_key_stdin() {
     let (tmp, key_path, _, yaml_path, encrypted_path) = generate_encrypted_file();
     let decrypted_path = tmp.child("file.dec.yaml");
-    yage_cmd!(
-        "decrypt",
-        "--key-file",
-        "-",
-        &encrypted_path,
-        "-o",
-        &decrypted_path
-    )
-    .write_stdin(read(&key_path))
-    .assert()
-    .success()
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage_cmd!("decrypt", "--key-file", "-", &encrypted_path, "-o", &decrypted_path)
+        .write_stdin(read(&key_path))
+        .assert()
+        .success()
+        .stdout(is_empty())
+        .stderr(is_empty());
     assert_eq!(read(&decrypted_path), read(&yaml_path));
 }
 
 #[test]
 fn decrypt_in_place() {
     let (_tmp, key_path, _, yaml_path, encrypted_path) = generate_encrypted_file();
-    yage!(
-        "decrypt",
-        "-k",
-        read(&key_path).trim(),
-        &encrypted_path,
-        "-i"
-    )
-    .stdout(is_empty())
-    .stderr(is_empty());
+    yage!("decrypt", "-k", read(&key_path).trim(), &encrypted_path, "-i")
+        .stdout(is_empty())
+        .stderr(is_empty());
     assert_eq!(read(&encrypted_path), read(&yaml_path));
 }
 
@@ -105,10 +85,7 @@ fn decrypt_key_from_env() {
     let (key_path2, _) = create_key(&tmp);
     let decrypted_path = tmp.child("file.dec.yaml");
     yage_cmd!("decrypt", &encrypted_path, "--output", &decrypted_path)
-        .env(
-            "YAGE_KEY",
-            format!("{},{}", read(&key_path1).trim(), read(&key_path2).trim()),
-        )
+        .env("YAGE_KEY", format!("{},{}", read(&key_path1).trim(), read(&key_path2).trim()))
         .assert()
         .success()
         .stdout(is_empty())
@@ -122,10 +99,7 @@ fn decrypt_key_file_from_env() {
     let (key_path2, _) = create_key(&tmp);
     let decrypted_path = tmp.child("file.dec.yaml");
     yage_cmd!("decrypt", &encrypted_path, "--output", &decrypted_path)
-        .env(
-            "YAGE_KEY_FILE",
-            std::env::join_paths(vec![&key_path1, &key_path2]).unwrap(),
-        )
+        .env("YAGE_KEY_FILE", std::env::join_paths(vec![&key_path1, &key_path2]).unwrap())
         .assert()
         .success()
         .stdout(is_empty())
