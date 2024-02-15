@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
 use clap::{arg, command, Args};
+use serde_yaml as sy;
 
 use crate::error::Result;
-use crate::{check_encrypted, check_recipients, read_yaml, EncryptionStatus};
+use crate::{check_encrypted, check_recipients, stdin_or_file, EncryptionStatus};
 
 /// Check the encryption status of a YAML file
 #[derive(Args, Debug)]
@@ -17,7 +18,10 @@ pub struct CheckArgs {
 pub fn check(args: &CheckArgs) -> Result<i32> {
     let mut ok: bool = true;
     for file in &args.files {
-        let input_data = read_yaml(file)?;
+        debug!("loading yaml file: {file:?}");
+        // don't user read_yaml here, because we don't want it to print a warning if the
+        // recipients are not consistent
+        let input_data: sy::Value = sy::from_reader(stdin_or_file(file)?)?;
         if !check_recipients(&input_data) {
             error! {"{file:?}: inconsistent recipients"};
             ok = false;
