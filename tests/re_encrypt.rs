@@ -79,6 +79,25 @@ fn re_encrypt_keep_recipients() {
 }
 
 #[test]
+fn re_encrypt_key_stdin() {
+    let (tmp, key_path, pub_path, yaml_path, encrypted_path) = generate_encrypted_file();
+    let re_encrypted_path = tmp.child("file.re-enc.yaml");
+    yage_cmd!("re-encrypt", "-K", "-", "-R", &pub_path, &encrypted_path, "-o", &re_encrypted_path)
+        .write_stdin(read(&key_path))
+        .assert()
+        .success()
+        .stdout(is_empty())
+        .stderr(is_empty());
+    let data: sy::Value = yage::read_yaml(&yaml_path).unwrap();
+    let encrypted_data: sy::Value = yage::read_yaml(&encrypted_path).unwrap();
+    let identities = yage::load_identities(&[], &[key_path]).unwrap();
+    let re_encrypted_data: sy::Value = sy::from_str(&read(&re_encrypted_path)).unwrap();
+    let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
+    assert_eq!(data, decrypted_data);
+    assert_ne!(encrypted_data, re_encrypted_data);
+}
+
+#[test]
 fn re_encrypt_no_recipient() {
     let (_tmp, key_path, _, _, encrypted_path) = generate_encrypted_file();
     yage_cmd!("re-encrypt", "-K", key_path, &encrypted_path)
