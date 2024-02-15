@@ -13,6 +13,7 @@ This document contains the help content for the `yage` command-line program.
 * [`yage keygen`↴](#yage-keygen)
 * [`yage pubkey`↴](#yage-pubkey)
 * [`yage recipients`↴](#yage-recipients)
+* [`yage re-encrypt`↴](#yage-re-encrypt)
 
 ## `yage`
 
@@ -30,6 +31,7 @@ A simple tool to manage encrypted secrets in YAML files with age encryption
 * `keygen` — Generate a new age key
 * `pubkey` — Convert private age keys to their public key
 * `recipients` — List the recipients of the encrypted data
+* `re-encrypt` — Re-encrypt the values in a YAML file
 
 ###### **Options:**
 
@@ -220,6 +222,40 @@ List the recipients of the encrypted data
   Possible values: `true`, `false`
 
 * `-o`, `--output <OUTPUT>` — The output path
+
+  Default value: `-`
+
+
+
+## `yage re-encrypt`
+
+Re-encrypt the values in a YAML file
+
+This command is similar to the encrypt command, but it first decrypts the values in the input file and re-encrypts them with the specified recipients.
+
+It is especially useful in several cases: - to change the recipients of a file, for example when a recipient's key is compromised, or when a recipient should be added or removed from the file. - to fix a recipient inconsistency in the values of a file, for example when the file was merged from different sources with different recipients.
+
+**Usage:** `yage re-encrypt [OPTIONS] [FILES]...`
+
+###### **Arguments:**
+
+* `<FILES>` — The YAML files to encrypt
+
+###### **Options:**
+
+* `-i`, `--in-place` — Re-encrypt in place
+
+  Possible values: `true`, `false`
+
+* `-e`, `--keep-recipients` — Keep the recipients of the input file
+
+  Possible values: `true`, `false`
+
+* `-k`, `--key <KEY>` — Decrypt with the specified key
+* `-K`, `--key-file <KEY_FILE>` — Decrypt with the key in the file
+* `-r`, `--recipient <RECIPIENT>` — Encrypt to the specified recipients
+* `-R`, `--recipient-file <RECIPIENT_FILE>` — Encrypt to recipients listed at PATH
+* `-o`, `--output <OUTPUT>` — The output path to the encrypted YAML file
 
   Default value: `-`
 
