@@ -90,12 +90,9 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
         sy::to_writer(output, &previous_data)?;
     }
 
-    // open the editor
     run_editor(&args.editor, &temp_file)?;
 
-    // load the data edited by the user
     let edited_data: sy::Value = sy::from_reader(File::open(&temp_file)?)?;
-
     // find what has not changed, and keep the encrypted data unchanged. That data is encrypted
     // with a nonce that make it appear different every time it is encrypted, so we avoid
     // encrypting it again. This way the data that has not changed isn't changed in its
@@ -111,12 +108,9 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
         }
     }
 
-    // encrypt the data with the recipients
     let output_data = encrypt_yaml(&to_encrypt_data, &recipients)?;
-    // save the encrypted data in the original file
     let output = File::create(&args.file).path_ctx(&args.file)?;
     sy::to_writer(output, &output_data)?;
-
     Ok(0)
 }
 
