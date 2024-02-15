@@ -1,4 +1,6 @@
-use std::fs::File;
+use std::fs;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -12,8 +14,7 @@ use treediff::Mutable;
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{IOResultExt, Result, YageError};
 use crate::{
-    create_private_file, decrypt_yaml, encrypt_yaml, get_yaml_recipients, load_identities,
-    read_yaml,
+    decrypt_yaml, encrypt_yaml, get_yaml_recipients, load_identities, read_yaml, write_yaml,
 };
 
 /// Edit an encrypted YAML file
@@ -78,13 +79,12 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
     // original file, but in a temporary directory. This way the user knows which file he is
     // editing if its editor shows the file name.
     let dir = tempdir()?;
+    #[cfg(unix)]
+    fs::set_permissions(&dir, fs::Permissions::from_mode(0o700))?;
     let filename =
         args.file.file_name().ok_or(YageError::InvalidFileName { path: args.file.clone() })?;
     let temp_file = dir.path().join(filename);
-    {
-        let output = create_private_file(&temp_file)?;
-        sy::to_writer(output, &previous_data)?;
-    }
+    write_yaml(&temp_file, &previous_data)?;
 
     run_editor(&args.editor, &temp_file)?;
 
@@ -105,8 +105,7 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
     }
 
     let output_data = encrypt_yaml(&to_encrypt_data, &recipients)?;
-    let output = File::create(&args.file).path_ctx(&args.file)?;
-    sy::to_writer(output, &output_data)?;
+    write_yaml(&args.file, &output_data)?;
     Ok(0)
 }
 

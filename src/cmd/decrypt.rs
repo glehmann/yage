@@ -2,11 +2,10 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::Args;
-use serde_yaml as sy;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{Result, YageError};
-use crate::{decrypt_yaml, load_identities, read_yaml, stdout_or_file};
+use crate::{decrypt_yaml, load_identities, read_yaml, write_yaml};
 
 /// Decrypt the values in a YAML file
 #[derive(Args, Debug)]
@@ -67,8 +66,7 @@ pub fn decrypt(args: &DecryptArgs) -> Result<i32> {
     for file in &args.files {
         let input_data = read_yaml(file)?;
         let output_data = decrypt_yaml(&input_data, &identities)?;
-        let output = stdout_or_file(if args.in_place { file } else { &args.output })?;
-        sy::to_writer(output, &output_data)?;
+        write_yaml(if args.in_place { file } else { &args.output }, &output_data)?;
     }
     Ok(0)
 }
