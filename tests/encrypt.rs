@@ -212,7 +212,6 @@ fn encrypt_partially_encrypted() {
         .stdout(is_empty())
         .stderr(is_empty());
     let raw_encrypted_data = read(&encrypted_path);
-    dbg!(&raw_encrypted_data);
     let encrypted_data: sy::Value = sy::from_str(&raw_encrypted_data).unwrap();
     assert_eq!(yage::check_encrypted(&encrypted_data), EncryptionStatus::Encrypted);
     // append some data to the encrypted file, then try to encrypt it again
@@ -251,7 +250,6 @@ fn encrypt_partially_encrypted_other_recipient() {
         .stdout(is_empty())
         .stderr(is_empty());
     let raw_encrypted_data = read(&encrypted_path);
-    dbg!(&raw_encrypted_data);
     let encrypted_data: sy::Value = sy::from_str(&raw_encrypted_data).unwrap();
     assert_eq!(yage::check_encrypted(&encrypted_data), EncryptionStatus::Encrypted);
     // append some data to the encrypted file, then try to encrypt it again
