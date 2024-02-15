@@ -75,6 +75,9 @@ pub fn encrypt(args: &EncryptArgs) -> Result<i32> {
     if args.in_place && args.files.contains(&PathBuf::from_str("-").unwrap()) {
         return Err(YageError::InPlaceStdin);
     }
+    if !args.in_place && args.files.len() != 1 {
+        return Err(YageError::InvalidNumberOfInputFiles);
+    }
     let recipients = load_recipients(&args.recipients, &args.recipient_files)?;
     for file in &args.files {
         let input_data = read_yaml(file)?;

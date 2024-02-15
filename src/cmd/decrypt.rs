@@ -60,6 +60,9 @@ pub fn decrypt(args: &DecryptArgs) -> Result<i32> {
     if args.in_place && args.files.contains(&PathBuf::from_str("-").unwrap()) {
         return Err(YageError::InPlaceStdin);
     }
+    if !args.in_place && args.files.len() != 1 {
+        return Err(YageError::InvalidNumberOfInputFiles);
+    }
     let identities = load_identities(&args.keys, &args.key_files)?;
     for file in &args.files {
         let input_data = read_yaml(file)?;

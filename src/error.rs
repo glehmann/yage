@@ -44,6 +44,10 @@ pub enum YageError {
     InvalidValueEncoding,
     #[error("the recipients form the command line don't match the recipients from the file")]
     InvalidRecipients,
+    #[error(
+        "invalid number of input files — consider using --in-place to work with multiple files"
+    )]
+    InvalidNumberOfInputFiles,
 }
 
 /// Alias for a `Result` with the error type `AppError`.
