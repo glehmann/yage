@@ -12,6 +12,7 @@ pub mod cmd {
     mod env;
     mod keygen;
     mod pubkey;
+    mod recipients;
     pub use check::*;
     pub use decrypt::*;
     pub use edit::*;
@@ -19,6 +20,7 @@ pub mod cmd {
     pub use env::*;
     pub use keygen::*;
     pub use pubkey::*;
+    pub use recipients::*;
 }
 
 use std::fs::{File, OpenOptions};

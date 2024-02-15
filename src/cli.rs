@@ -27,6 +27,7 @@ pub enum Commands {
     Env(cmd::EnvArgs),
     Keygen(cmd::KeygenArgs),
     Pubkey(cmd::PubkeyArgs),
+    Recipients(cmd::RecipientsArgs),
 }
 
 #[cfg(windows)]
