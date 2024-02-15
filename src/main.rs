@@ -30,6 +30,7 @@ fn run() -> error::Result<i32> {
         cli::Commands::Env(args) => cmd::env(args),
         cli::Commands::Check(args) => cmd::check(args),
         cli::Commands::Recipients(args) => cmd::recipients(args),
+        cli::Commands::ReEncrypt(args) => cmd::re_encrypt(args),
     }
 }
 

@@ -12,6 +12,7 @@ pub mod cmd {
     mod env;
     mod keygen;
     mod pubkey;
+    mod re_encrypt;
     mod recipients;
     pub use check::*;
     pub use decrypt::*;
@@ -20,6 +21,7 @@ pub mod cmd {
     pub use env::*;
     pub use keygen::*;
     pub use pubkey::*;
+    pub use re_encrypt::*;
     pub use recipients::*;
 }
 
@@ -376,4 +378,11 @@ pub fn read_yaml(path: &Path) -> Result<sy::Value> {
         warn!("{}: inconsistent recipients", path.to_string_lossy());
     }
     Ok(value)
+}
+
+pub fn write_yaml(path: &Path, value: &sy::Value) -> Result<()> {
+    debug!("writing yaml file: {path:?}");
+    let output = stdout_or_file(path)?;
+    sy::to_writer(output, value)?;
+    Ok(())
 }

@@ -28,6 +28,7 @@ pub enum Commands {
     Keygen(cmd::KeygenArgs),
     Pubkey(cmd::PubkeyArgs),
     Recipients(cmd::RecipientsArgs),
+    ReEncrypt(cmd::ReEncryptArgs),
 }
 
 #[cfg(windows)]
