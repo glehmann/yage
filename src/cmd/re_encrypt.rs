@@ -33,7 +33,8 @@ pub struct ReEncryptArgs {
 
     /// Keep the recipients of the input file
     ///
-    /// More recipients may be added with the --recipient and --recipient-file options.
+    /// More recipients may be added with the --recipient and --recipient-file options,
+    /// and removed with the --remove-recipient and --remove-recipient-file options.
     #[clap(short = 'e', long)]
     pub keep_recipients: bool,
 
@@ -87,11 +88,29 @@ pub struct ReEncryptArgs {
     #[clap(
         short = 'R',
         long = "recipient-file",
-        name = "RECIPIENT_FILE",
+        value_name = "FILE",
         env = "YAGE_RECIPIENT_FILE",
         value_delimiter = ENV_PATH_SEP,
     )]
     pub recipient_files: Vec<PathBuf>,
+
+    /// Remove the recipient from the list of recipients
+    ///
+    /// The removal in the recipient list is always done after processing the --keep-recipients,
+    /// --recipient and --recipient-file options.
+    ///
+    /// May be repeated.
+    #[clap(short = 'd', long = "remove-recipient", value_name = "RECIPIENT")]
+    pub remove_recipients: Vec<String>,
+
+    /// Remove the recipients in the file from the list of recipients
+    ///
+    /// The removal in the recipient list is always done after processing the --keep-recipients,
+    /// --recipient and --recipient-file options.
+    ///
+    /// May be repeated.
+    #[clap(short = 'D', long = "remove-recipient-file", value_name = "FILE")]
+    pub remove_recipient_files: Vec<PathBuf>,
 
     /// The output path to the encrypted YAML file
     ///
@@ -115,6 +134,7 @@ pub fn re_encrypt(args: &ReEncryptArgs) -> Result<i32> {
     }
     let identities = load_identities(&args.keys, &args.key_files)?;
     let arg_recipients = load_recipients(&args.recipients, &args.recipient_files)?;
+    let remove_recipients = load_recipients(&args.remove_recipients, &args.remove_recipient_files)?;
     for file in &args.files {
         let input_data = read_yaml(file)?;
         let decrypted_data = decrypt_yaml(&input_data, &identities)?;
@@ -123,6 +143,7 @@ pub fn re_encrypt(args: &ReEncryptArgs) -> Result<i32> {
         let mut recipients = [arg_recipients.clone(), yaml_recipients].concat();
         recipients.sort_by_cached_key(|r| r.to_string());
         recipients.dedup();
+        recipients.retain(|r| !remove_recipients.contains(r));
         debug!("{file:?} recipients: {recipients:?}");
         let output_data = encrypt_yaml(&decrypted_data, &recipients)?;
         write_yaml(if args.in_place { file } else { &args.output }, &output_data)?;
