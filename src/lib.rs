@@ -116,25 +116,16 @@ pub fn decrypt_yaml(value: &sy::Value, identities: &[x25519::Identity]) -> Resul
 pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Value> {
     match YageEncodedValue::from_str(s) {
         Ok(yev) => {
-            // decode the base64 data
-            let encrypted = BASE64_STANDARD.decode(yev.data)?;
-            // decrypt the age encrypted data
-            let decryptor = match age::Decryptor::new(&encrypted[..])? {
+            // raw value -> decoded value -> decrypted value -> decompressed value -> deserialized value
+            let decoded = BASE64_STANDARD.decode(yev.data)?;
+            let decryptor = match age::Decryptor::new(&decoded[..])? {
                 age::Decryptor::Recipients(d) => Ok(d),
                 _ => Err(YageError::PassphraseUnsupported),
-            }?;
-            let mut decrypted = vec![];
-            let mut reader =
-                decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
-            reader.read_to_end(&mut decrypted)?;
-            // decompress the data
-            // compress the data
-            let mut compressor = flate2::read::DeflateDecoder::new(&decrypted[..]);
-            let mut serialized = vec![];
-            compressor.read_to_end(&mut serialized)?;
-            // deserialize the data
-            let value: sy::Value = sy::from_slice(&serialized)?;
-            Ok(value)
+            }?
+            .decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
+            let decompressor = flate2::read::DeflateDecoder::new(decryptor);
+            let deserialized: sy::Value = sy::from_reader(decompressor)?;
+            Ok(deserialized)
         }
         Err(_) => Ok(sy::Value::String(s.to_owned())),
     }
@@ -197,26 +188,20 @@ pub fn encrypt_yaml(value: &sy::Value, recipients: &[x25519::Recipient]) -> Resu
 }
 
 pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Result<String> {
+    // yaml value -> serialized value -> compressed value -> encrypted value -> encoded value
     type Recipients = Vec<Box<dyn age::Recipient + Send + 'static>>;
     let recipients_dyn = recipients
         .iter()
         .map(|r| Box::new(r.clone()) as Box<dyn age::Recipient + Send + 'static>)
         .collect::<Recipients>();
-    // serialize the value so we can work with any type
-    let data = sy::to_string(value)?;
-    // compress the data
-    let mut compressor =
-        flate2::read::DeflateEncoder::new(data.as_bytes(), flate2::Compression::new(6));
-    let mut compressed = vec![];
-    compressor.read_to_end(&mut compressed)?;
-    // encrypt the data
     let mut encrypted = vec![];
-    let encryptor =
-        age::Encryptor::with_recipients(recipients_dyn).ok_or(YageError::NoRecipients)?;
-    // let mut armored = ArmoredWriter::wrap_output(&mut encrypted, Format::AsciiArmor)?;
-    let mut writer = encryptor.wrap_output(&mut encrypted)?;
-    writer.write_all(&compressed)?;
-    writer.finish()?;
+    let mut encryptor = age::Encryptor::with_recipients(recipients_dyn)
+        .ok_or(YageError::NoRecipients)?
+        .wrap_output(&mut encrypted)?;
+    let compressor =
+        flate2::write::DeflateEncoder::new(&mut encryptor, flate2::Compression::new(6));
+    sy::to_writer(compressor, value)?;
+    encryptor.finish()?;
     // prepare the recipients list (sorted and deduplicated)
     let mut recipients: Vec<_> = recipients.iter().map(|r| r.to_string()).collect();
     recipients.sort();
