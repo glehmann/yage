@@ -129,7 +129,7 @@ pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Val
             reader.read_to_end(&mut decrypted)?;
             // decompress the data
             // compress the data
-            let mut compressor = brotli::Decompressor::new(&decrypted[..], 4096);
+            let mut compressor = flate2::read::DeflateDecoder::new(&decrypted[..]);
             let mut serialized = vec![];
             compressor.read_to_end(&mut serialized)?;
             // deserialize the data
@@ -205,7 +205,8 @@ pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Res
     // serialize the value so we can work with any type
     let data = sy::to_string(value)?;
     // compress the data
-    let mut compressor = brotli::CompressorReader::new(data.as_bytes(), 4096, 11, 22);
+    let mut compressor =
+        flate2::read::DeflateEncoder::new(data.as_bytes(), flate2::Compression::new(6));
     let mut compressed = vec![];
     compressor.read_to_end(&mut compressed)?;
     // encrypt the data

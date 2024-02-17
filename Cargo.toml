@@ -20,10 +20,10 @@ members = ["xtask"]
 [dependencies]
 age = "0.10.0"
 base64 = "0.21.7"
-brotli = "3.4.0"
 clap = { version = "4.4.18", features = ["derive", "env", "wrap_help"] }
 clap-verbosity-flag = "2.1.2"
 clap_complete = "4.4.10"
+flate2 = "1.0.28"
 fs-mistrust = "0.7.6"
 log = "0.4.20"
 ocli = "0.1.1"
