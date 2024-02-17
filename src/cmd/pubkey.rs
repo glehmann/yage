@@ -36,7 +36,7 @@ pub struct PubkeyArgs {
     /// The output path to the public key file
     ///
     /// The public keys are written to the standard output by default.
-    #[clap(short, long, default_value = "-")]
+    #[clap(short, long, default_value = "-", value_name = "FILE")]
     pub output: PathBuf,
 }
 

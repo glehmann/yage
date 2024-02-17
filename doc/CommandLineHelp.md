@@ -73,8 +73,8 @@ Decrypt the values in a YAML file
   Possible values: `true`, `false`
 
 * `-k`, `--key <KEY>` — Decrypt with the specified key
-* `-K`, `--key-file <KEY_FILE>` — Decrypt with the key in the file
-* `-o`, `--output <OUTPUT>` — The output path to the decrypted YAML file
+* `-K`, `--key-file <FILE>` — Decrypt with the key in the file
+* `-o`, `--output <FILE>` — The output path to the decrypted YAML file
 
   Default value: `-`
 
@@ -102,7 +102,7 @@ Only the modified values are encrypted, the other values are left unchanged.
 
   Default value: `vim`
 * `-k`, `--key <KEY>` — Decrypt with the specified key
-* `-K`, `--key-file <KEY_FILE>` — Decrypt with the key at in this file
+* `-K`, `--key-file <FILE>` — Decrypt with the key at in this file
 
 
 
@@ -129,8 +129,8 @@ This command is able to encrypt some new values in a file that already contains 
   Possible values: `true`, `false`
 
 * `-r`, `--recipient <RECIPIENT>` — Encrypt to the specified recipients
-* `-R`, `--recipient-file <RECIPIENT_FILE>` — Encrypt to recipients listed at PATH
-* `-o`, `--output <OUTPUT>` — The output path to the encrypted YAML file
+* `-R`, `--recipient-file <FILE>` — Encrypt to recipients listed at PATH
+* `-o`, `--output <FILE>` — The output path to the encrypted YAML file
 
   Default value: `-`
 
@@ -159,7 +159,7 @@ The YAML file must contain a map with string keys and values. The keys are the e
   Possible values: `true`, `false`
 
 * `-k`, `--key <KEY>` — Decrypt with the specified key
-* `-K`, `--key-file <KEY_FILE>` — Decrypt with the key at PATH
+* `-K`, `--key-file <FILE>` — Decrypt with the key at PATH
 
 
 
@@ -175,7 +175,7 @@ The key is written in the age format, which is compatible with the age tool.
 
 ###### **Options:**
 
-* `-o`, `--output <OUTPUT>` — The output path to the private key file
+* `-o`, `--output <FILE>` — The output path to the private key file
 
   Default value: `-`
 * `-p`, `--public <PUBLIC>` — The output path to the public key file
@@ -197,7 +197,7 @@ The input key and output public key are in the age format, which is compatible w
 ###### **Options:**
 
 * `-k`, `--key <KEY>` — The private keys
-* `-o`, `--output <OUTPUT>` — The output path to the public key file
+* `-o`, `--output <FILE>` — The output path to the public key file
 
   Default value: `-`
 
@@ -221,7 +221,7 @@ List the recipients of the encrypted data
 
   Possible values: `true`, `false`
 
-* `-o`, `--output <OUTPUT>` — The output path
+* `-o`, `--output <FILE>` — The output path
 
   Default value: `-`
 
@@ -252,10 +252,12 @@ It is especially useful in several cases: - to change the recipients of a file, 
   Possible values: `true`, `false`
 
 * `-k`, `--key <KEY>` — Decrypt with the specified key
-* `-K`, `--key-file <KEY_FILE>` — Decrypt with the key in the file
+* `-K`, `--key-file <FILE>` — Decrypt with the key in the file
 * `-r`, `--recipient <RECIPIENT>` — Encrypt to the specified recipients
-* `-R`, `--recipient-file <RECIPIENT_FILE>` — Encrypt to recipients listed at PATH
-* `-o`, `--output <OUTPUT>` — The output path to the encrypted YAML file
+* `-R`, `--recipient-file <FILE>` — Encrypt to recipients listed at PATH
+* `-d`, `--remove-recipient <RECIPIENT>` — Remove the recipient from the list of recipients
+* `-D`, `--remove-recipient-file <FILE>` — Remove the recipients in the file from the list of recipients
+* `-o`, `--output <FILE>` — The output path to the encrypted YAML file
 
   Default value: `-`
 

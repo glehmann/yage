@@ -18,7 +18,7 @@ pub struct KeygenArgs {
     /// The output path to the private key file
     ///
     /// The private key is written to the standard output by default.
-    #[clap(short, long, default_value = "-")]
+    #[clap(short, long, default_value = "-", value_name = "FILE")]
     pub output: PathBuf,
 
     /// The output path to the public key file

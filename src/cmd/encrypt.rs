@@ -60,7 +60,7 @@ pub struct EncryptArgs {
     /// The output path to the encrypted YAML file
     ///
     /// The encrypted YAML file is written to the standard output by default.
-    #[clap(short, long, default_value = "-")]
+    #[clap(short, long, default_value = "-", value_name = "FILE")]
     pub output: PathBuf,
 
     /// The YAML files to encrypt

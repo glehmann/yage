@@ -20,7 +20,7 @@ pub struct RecipientsArgs {
     /// The output path
     ///
     /// The recipients are written to the standard output by default.
-    #[clap(short, long, default_value = "-")]
+    #[clap(short, long, default_value = "-", value_name = "FILE")]
     pub output: PathBuf,
 
     /// The encrypted YAML files

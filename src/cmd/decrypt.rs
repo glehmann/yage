@@ -47,7 +47,7 @@ pub struct DecryptArgs {
     /// The output path to the decrypted YAML file
     ///
     /// The decrypted YAML file is written to the standard output by default.
-    #[clap(short, long, default_value = "-")]
+    #[clap(short, long, default_value = "-", value_name = "FILE")]
     pub output: PathBuf,
 
     /// The YAML files to decrypt
