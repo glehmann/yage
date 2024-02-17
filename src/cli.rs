@@ -8,7 +8,7 @@ use crate::cmd;
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
 pub struct Cli {
     /// Generate the completion code for this shell
-    #[arg(long, name = "SHELL")]
+    #[arg(long, value_name = "SHELL")]
     pub completion: Option<clap_complete::Shell>,
 
     #[command(subcommand)]

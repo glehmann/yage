@@ -27,7 +27,7 @@ pub struct DecryptArgs {
     /// May be repeated.
     ///
     /// Multiple values may be passed in the YAGE_KEY environment variable separated by commas.
-    #[clap(short, long = "key", name = "KEY", env = "YAGE_KEY", value_delimiter = ',')]
+    #[clap(short, long = "key", value_name = "KEY", env = "YAGE_KEY", value_delimiter = ',')]
     pub keys: Vec<String>,
 
     /// Decrypt with the key in the file
@@ -38,7 +38,7 @@ pub struct DecryptArgs {
     #[clap(
         short = 'K',
         long = "key-file",
-        name = "KEY_FILE",
+        value_name = "FILE",
         env = "YAGE_KEY_FILE",
         value_delimiter = ENV_PATH_SEP,
     )]

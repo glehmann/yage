@@ -35,7 +35,7 @@ pub struct EncryptArgs {
     #[clap(
         short,
         long = "recipient",
-        name = "RECIPIENT",
+        value_name = "RECIPIENT",
         env = "YAGE_RECIPIENT",
         value_delimiter = ','
     )]
@@ -51,7 +51,7 @@ pub struct EncryptArgs {
     #[clap(
         short = 'R',
         long = "recipient-file",
-        name = "RECIPIENT_FILE",
+        value_name = "FILE",
         env = "YAGE_RECIPIENT_FILE",
         value_delimiter = ENV_PATH_SEP,
     )]
