@@ -11,11 +11,11 @@ pub struct Cli {
     #[arg(long, name = "SHELL")]
     pub completion: Option<clap_complete::Shell>,
 
-    #[command(flatten)]
-    pub verbose: Verbosity<InfoLevel>,
-
     #[command(subcommand)]
     pub command: Option<Commands>,
+
+    #[command(flatten)]
+    pub verbose: Verbosity<InfoLevel>,
 }
 
 #[derive(Subcommand, Debug)]
