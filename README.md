@@ -297,6 +297,9 @@ And because writing command line tools in rust is fun!
 ## Still to be done
 
 * [ ] Support comments. Sadly no YAML library that I know of supports comments, so this will be a bit tricky.
+* [ ] Support age plugins. age has a plugin system that could be used to add support for other encryption methods.
+* [ ] Support multi-document YAML files. This could help to make the CLI more consistent between in place and
+      standard output operations.
 
 ## License
 
