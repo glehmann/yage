@@ -1,3 +1,5 @@
+#[cfg(feature = "backtrace")]
+use std::backtrace::Backtrace;
 use std::io;
 use std::{path::PathBuf, result};
 
@@ -16,10 +18,20 @@ pub enum YageError {
     RecipientParse { recipient: String, message: String },
     #[error("can't parse key: {message}")]
     KeyParse { message: String },
-    #[error(transparent)]
-    Decrypt(#[from] age::DecryptError),
-    #[error(transparent)]
-    Encrypt(#[from] age::EncryptError),
+    #[error("age decryption failed: {source}")]
+    Decrypt {
+        #[from]
+        source: age::DecryptError,
+        #[cfg(feature = "backtrace")]
+        backtrace: Backtrace,
+    },
+    #[error("age encryption failed: {source}")]
+    Encrypt {
+        #[from]
+        source: age::EncryptError,
+        #[cfg(feature = "backtrace")]
+        backtrace: Backtrace,
+    },
     #[error(transparent)]
     Utf8(#[from] std::string::FromUtf8Error),
     #[error(transparent)]
