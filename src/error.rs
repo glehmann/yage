@@ -8,21 +8,21 @@ use thiserror::Error;
 pub enum YageError {
     #[error("{path}: {source}")]
     PathIo { path: PathBuf, source: std::io::Error },
-    #[error(transparent)]
+    #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
-    #[error(transparent)]
+    #[error("YAML error: {0}")]
     Yaml(#[from] sy::Error),
     #[error("can't parse recipient {recipient}: {message}")]
     RecipientParse { recipient: String, message: String },
     #[error("can't parse key: {message}")]
     KeyParse { message: String },
-    #[error(transparent)]
+    #[error("age decryption error: {0}")]
     Decrypt(#[from] age::DecryptError),
-    #[error(transparent)]
+    #[error("age encryption error: {0}")]
     Encrypt(#[from] age::EncryptError),
     #[error(transparent)]
     Utf8(#[from] std::string::FromUtf8Error),
-    #[error(transparent)]
+    #[error("base64 encoding error {0}")]
     Base64Decode(#[from] base64::DecodeError),
     #[error("no recipients provided")]
     NoRecipients,
