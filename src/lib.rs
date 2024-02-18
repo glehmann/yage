@@ -34,7 +34,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use age::x25519;
-use base64::prelude::*;
+use base64_stream as b64;
 use serde_yaml as sy;
 use strum::{Display, EnumIs, EnumIter, EnumString};
 use substring::Substring;
@@ -117,8 +117,8 @@ pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Val
     match YageEncodedValue::from_str(s) {
         Ok(yev) => {
             // raw value -> decoded value -> decrypted value -> decompressed value -> deserialized value
-            let decoded = BASE64_STANDARD.decode(yev.data)?;
-            let decryptor = match age::Decryptor::new(&decoded[..])? {
+            let decoder = b64::ToBase64Reader::new(yev.data.as_bytes());
+            let decryptor = match age::Decryptor::new(decoder)? {
                 age::Decryptor::Recipients(d) => Ok(d),
                 _ => Err(YageError::PassphraseUnsupported),
             }?
@@ -194,10 +194,11 @@ pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Res
         .iter()
         .map(|r| Box::new(r.clone()) as Box<dyn age::Recipient + Send + 'static>)
         .collect::<Recipients>();
-    let mut encrypted = vec![];
+    let mut encoded: Vec<u8> = Vec::new();
+    let encoder = b64::ToBase64Writer::new(&mut encoded);
     let mut encryptor = age::Encryptor::with_recipients(recipients_dyn)
         .ok_or(YageError::NoRecipients)?
-        .wrap_output(&mut encrypted)?;
+        .wrap_output(encoder)?;
     let compressor =
         flate2::write::DeflateEncoder::new(&mut encryptor, flate2::Compression::new(6));
     sy::to_writer(compressor, value)?;
@@ -206,7 +207,7 @@ pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Res
     let mut recipients: Vec<_> = recipients.iter().map(|r| r.to_string()).collect();
     recipients.sort();
     recipients.dedup();
-    let yev = YageEncodedValue { data: BASE64_STANDARD.encode(&encrypted), recipients };
+    let yev = YageEncodedValue { data: String::from_utf8(encoded)?, recipients };
     Ok(yev.to_string())
 }
 
