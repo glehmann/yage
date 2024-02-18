@@ -51,7 +51,7 @@ platform, extract it and put the `yage` binary in a directory in your `PATH`.
 For example on linux with an intel/amd64 processor, you can run the following commands to install `yage` in `~/.local/bin`:
 
 ```sh
-curl -ssL https://github.com/glehmann/yage/releases/download/0.4.0/yage-0.4.0-linux-amd64.tar.gz | tar xzf - -C ~/.local/bin --strip-components=1
+curl -ssL https://github.com/glehmann/yage/releases/download/0.5.0/yage-0.5.0-linux-amd64.tar.gz | tar xzf - -C ~/.local/bin --strip-components=1
 ```
 
 ### Docker
@@ -61,7 +61,7 @@ curl -ssL https://github.com/glehmann/yage/releases/download/0.4.0/yage-0.4.0-li
 Here is how you can use it to encrypt a file in place:
 
 ~~~sh
-docker run --rm -t -v $(pwd):/src ghcr.io/glehmann/yage:0.4.0 encrypt -iR prod.pub secrets.yaml
+docker run --rm -t -v $(pwd):/src ghcr.io/glehmann/yage:0.5.0 encrypt -iR prod.pub secrets.yaml
 ~~~
 
 ### From source
@@ -253,7 +253,7 @@ uses `yage` to detect the non-encrypted secrets in a YAML file before committing
 ```yaml
 repos:
   - repo: https://github.com/glehmann/yage
-    rev: 0.4.0
+    rev: 0.5.0
     hooks:
       - id: yage-detect
         files: "secrets-.+\\.yaml"
@@ -267,7 +267,7 @@ committing them:
 ```yaml
 repos:
   - repo: https://github.com/glehmann/yage
-    rev: 0.4.0
+    rev: 0.5.0
     hooks:
       - id: yage-encrypt
         files: "secrets-prod-.+\\.yaml"
