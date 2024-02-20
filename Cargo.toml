@@ -36,7 +36,7 @@ thiserror = "1.0.56"
 treediff = { version = "4.0.3", features = ["with-serde-yaml"] }
 
 [dev-dependencies]
-assert_cmd = { git="https://github.com/glehmann/assert_cmd", branch="cross" }
+assert_cmd = "2.0.14"
 predicates = "3.1"
 assert_fs = "1.1"
 lipsum = "0.9"
