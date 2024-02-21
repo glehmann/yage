@@ -6,48 +6,67 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum YageError {
-    #[error("{path}: {source}")]
-    PathIo { path: PathBuf, source: std::io::Error },
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-    #[error("YAML error: {0}")]
-    Yaml(#[from] sy::Error),
-    #[error("can't parse recipient {recipient}: {message}")]
-    RecipientParse { recipient: String, message: String },
-    #[error("can't parse key: {message}")]
-    KeyParse { message: String },
-    #[error("age decryption error: {0}")]
-    Decrypt(#[from] age::DecryptError),
-    #[error("age encryption error: {0}")]
-    Encrypt(#[from] age::EncryptError),
-    #[error(transparent)]
-    Utf8(#[from] std::string::FromUtf8Error),
     #[error("base64 encoding error {0}")]
     Base64Decode(#[from] base64::DecodeError),
-    #[error("no recipients provided")]
-    NoRecipients,
-    #[error("passphrase not supported")]
-    PassphraseUnsupported,
-    #[error("yaml value is not a map")]
-    NotAMap,
-    #[error("yaml value is not a string or a number")]
-    NotAStringOrNumber,
-    #[error("invalid file name: {path:?}")]
-    InvalidFileName { path: PathBuf },
+
+    #[error("age decryption error: {0}")]
+    Decrypt(#[from] age::DecryptError),
+
+    #[error("age encryption error: {0}")]
+    Encrypt(#[from] age::EncryptError),
+
     #[error("editor exited with an error status")]
     Editor,
-    #[error("key not found")]
-    KeyNotFound,
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
     #[error("stdin can't be modified in place")]
     InPlaceStdin,
-    #[error("invalid value encoding")]
-    InvalidValueEncoding,
-    #[error("the recipients form the command line don't match the recipients from the file")]
-    InvalidRecipients,
+
+    #[error("invalid file name: {path:?}")]
+    InvalidFileName { path: PathBuf },
+
     #[error(
         "invalid number of input files — consider using --in-place to work with multiple files"
     )]
     InvalidNumberOfInputFiles,
+
+    #[error("the recipients form the command line don't match the recipients from the file")]
+    InvalidRecipients,
+
+    #[error("invalid value encoding")]
+    InvalidValueEncoding,
+
+    #[error("key not found")]
+    KeyNotFound,
+
+    #[error("can't parse key: {message}")]
+    KeyParse { message: String },
+
+    #[error("no recipients provided")]
+    NoRecipients,
+
+    #[error("yaml value is not a map")]
+    NotAMap,
+
+    #[error("yaml value is not a string or a number")]
+    NotAStringOrNumber,
+
+    #[error("passphrase not supported")]
+    PassphraseUnsupported,
+
+    #[error("{path}: {source}")]
+    PathIo { path: PathBuf, source: std::io::Error },
+
+    #[error("can't parse recipient {recipient}: {message}")]
+    RecipientParse { recipient: String, message: String },
+
+    #[error(transparent)]
+    Utf8(#[from] std::string::FromUtf8Error),
+
+    #[error("YAML error: {0}")]
+    Yaml(#[from] sy::Error),
 }
 
 /// Alias for a `Result` with the error type `AppError`.
