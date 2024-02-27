@@ -61,6 +61,9 @@ pub struct EnvArgs {
 
 pub fn env(args: &EnvArgs) -> Result<i32> {
     let identities = load_identities(&args.keys, &args.key_files)?;
+    if identities.is_empty() {
+        return Err(YageError::NoKeys);
+    }
     let input_data = read_yaml(&args.file)?;
     let output_data = decrypt_yaml(&input_data, &identities)?;
     let env_data = build_env(&output_data)?;

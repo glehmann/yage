@@ -133,6 +133,9 @@ pub fn re_encrypt(args: &ReEncryptArgs) -> Result<i32> {
         return Err(YageError::InvalidNumberOfInputFiles);
     }
     let identities = load_identities(&args.keys, &args.key_files)?;
+    if identities.is_empty() {
+        return Err(YageError::NoKeys);
+    }
     let arg_recipients = load_recipients(&args.recipients, &args.recipient_files)?;
     let remove_recipients = load_recipients(&args.remove_recipients, &args.remove_recipient_files)?;
     for file in &args.files {

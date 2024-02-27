@@ -63,6 +63,9 @@ pub fn decrypt(args: &DecryptArgs) -> Result<i32> {
         return Err(YageError::InvalidNumberOfInputFiles);
     }
     let identities = load_identities(&args.keys, &args.key_files)?;
+    if identities.is_empty() {
+        return Err(YageError::NoKeys);
+    }
     for file in &args.files {
         let input_data = read_yaml(file)?;
         let output_data = decrypt_yaml(&input_data, &identities)?;

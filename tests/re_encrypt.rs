@@ -114,7 +114,7 @@ fn re_encrypt_no_key() {
         .assert()
         .failure()
         .stdout(is_empty())
-        .stderr(contains("error: No matching keys found"));
+        .stderr(contains("error: no keys provided"));
 }
 
 #[test]

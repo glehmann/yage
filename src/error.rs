@@ -44,6 +44,9 @@ pub enum YageError {
     #[error("can't parse key: {message}")]
     KeyParse { message: String },
 
+    #[error("no keys provided")]
+    NoKeys,
+
     #[error("no recipients provided")]
     NoRecipients,
 

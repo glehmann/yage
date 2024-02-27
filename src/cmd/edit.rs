@@ -69,6 +69,9 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
         return Err(YageError::InPlaceStdin);
     }
     let identities = load_identities(&args.keys, &args.key_files)?;
+    if identities.is_empty() {
+        return Err(YageError::NoKeys);
+    }
     let input_data = read_yaml(&args.file)?;
     let recipients = get_yaml_recipients(&input_data)?;
     if recipients.is_empty() {
