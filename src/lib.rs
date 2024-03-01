@@ -35,6 +35,8 @@ use std::str::FromStr;
 
 use age::x25519;
 use base64::prelude::*;
+use bat::PrettyPrinter;
+use is_terminal::IsTerminal;
 use serde_yaml as sy;
 use strum::{Display, EnumIs, EnumIter, EnumString};
 use substring::Substring;
@@ -383,7 +385,16 @@ pub fn read_yaml(path: &Path) -> Result<sy::Value> {
 
 pub fn write_yaml(path: &Path, value: &sy::Value) -> Result<()> {
     debug!("writing yaml file: {path:?}");
-    let output = stdout_or_file(path)?;
-    sy::to_writer(output, value)?;
+    let (output, color): (Box<dyn Write>, bool) = if path == Path::new("-") {
+        (Box::new(stdout()), stdout().is_terminal())
+    } else {
+        (Box::new(File::create(path).path_ctx(path)?), false)
+    };
+    if color {
+        let data = sy::to_string(value)?;
+        PrettyPrinter::new().input_from_bytes(data.as_bytes()).language("yaml").print().unwrap();
+    } else {
+        sy::to_writer(output, value)?;
+    }
     Ok(())
 }
