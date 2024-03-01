@@ -26,7 +26,7 @@ pub mod cmd {
 }
 
 use std::fs::{File, OpenOptions};
-use std::io::{stdin, stdout, BufRead, BufReader, Read, Write};
+use std::io::{stdin, stdout, BufRead, BufReader, IsTerminal, Read, Write};
 #[cfg(unix)]
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;
@@ -35,8 +35,6 @@ use std::str::FromStr;
 
 use age::x25519;
 use base64::prelude::*;
-use bat::PrettyPrinter;
-use is_terminal::IsTerminal;
 use serde_yaml as sy;
 use strum::{Display, EnumIs, EnumIter, EnumString};
 use substring::Substring;
@@ -385,16 +383,15 @@ pub fn read_yaml(path: &Path) -> Result<sy::Value> {
 
 pub fn write_yaml(path: &Path, value: &sy::Value) -> Result<()> {
     debug!("writing yaml file: {path:?}");
-    let (output, color): (Box<dyn Write>, bool) = if path == Path::new("-") {
-        (Box::new(stdout()), stdout().is_terminal())
+    if stdout().is_terminal() {
+        let res = HighLightRes::default().with_background(false);
+        let s = sy::to_string(value)?;
+        gen_syntax_highlight("yaml", &s, Some(&res), None)
+            .expect("Failed to get highlighted toml text");
     } else {
-        (Box::new(File::create(path).path_ctx(path)?), false)
-    };
-    if color {
-        let data = sy::to_string(value)?;
-        PrettyPrinter::new().input_from_bytes(data.as_bytes()).language("yaml").print().unwrap();
-    } else {
-        sy::to_writer(output, value)?;
+        sy::to_writer(File::create(path).path_ctx(path)?, value)?;
     }
     Ok(())
 }
+
+use hlight::{gen_syntax_highlight, HighLightRes};
