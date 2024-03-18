@@ -740,9 +740,9 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
 name = "fs-mistrust"
-version = "0.7.7"
+version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "476c90fd2e83786920602f28c4c00ef739106329cc0b5efdf0a87837524bcf13"
+checksum = "0af38a7e00ec1cc0cae8002d3cc9738ebb97d623bc519ca8a9b471e9bc8cdb75"
 dependencies = [
  "derive_builder_fork_arti",
  "dirs",
