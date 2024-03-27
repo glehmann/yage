@@ -15,26 +15,26 @@ cross-deps:
     RUN wget -nv -O- "https://github.com/cross-rs/cross/releases/download/v${CROSS_VERSION}/cross-x86_64-unknown-linux-musl.tar.gz" | tar -xzf - -C /usr/local/bin
     DO rust+SET_CACHE_MOUNTS_ENV
     COPY --keep-ts . ./
-    DO rust+CARGO --args="fetch"
+    DO rust+CARGO --args=fetch
 
 cross:
     FROM +cross-deps
     ARG TARGETPLATFORM
     LET target="unsupported platform"
     IF [ "$TARGETPLATFORM" = "linux/amd64" ]
-        SET target="x86_64-unknown-linux-musl"
+        SET target=x86_64-unknown-linux-musl
     ELSE IF [ "$TARGETPLATFORM" = "linux/arm64" ]
-        SET target="aarch64-unknown-linux-musl"
+        SET target=aarch64-unknown-linux-musl
     ELSE IF [ "$TARGETPLATFORM" = "linux/386" ]
-        SET target="i686-unknown-linux-musl"
+        SET target=i686-unknown-linux-musl
     ELSE IF [ "$TARGETPLATFORM" = "linux/arm/v7" ]
-        SET target="armv7-unknown-linux-musleabihf"
+        SET target=armv7-unknown-linux-musleabihf
     ELSE IF [ "$TARGETPLATFORM" = "linux/arm/v6" ]
-        SET target="arm-unknown-linux-musleabihf"
+        SET target=arm-unknown-linux-musleabihf
     ELSE IF [ "$TARGETPLATFORM" = "linux/ppc64le" ]
-        SET target="powerpc64le-unknown-linux-gnu"
+        SET target=powerpc64le-unknown-linux-gnu
     ELSE IF [ "$TARGETPLATFORM" = "linux/s390x" ]
-        SET target="s390x-unknown-linux-gnu"
+        SET target=s390x-unknown-linux-gnu
     END
     DO rust+CROSS --target=$target
     DO rust+COPY_OUTPUT --output=".+/release/[^\./]+"
