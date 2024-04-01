@@ -33,7 +33,7 @@ strum = { version = "0.26.2", features = ["derive"] }
 substring = "1.4.5"
 tempfile = "3.10.1"
 thiserror = "1.0.58"
-treediff = { version = "4.0.3", features = ["with-serde-yaml"] }
+treediff = { version = "5.0.0", features = ["with-serde-yaml"] }
 
 [dev-dependencies]
 assert_cmd = "2.0.14"
