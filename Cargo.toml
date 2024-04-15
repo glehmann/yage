@@ -22,7 +22,7 @@ age = "0.10.0"
 base64 = "0.22.0"
 clap = { version = "4.5.3", features = ["derive", "env", "wrap_help"] }
 clap-verbosity-flag = "2.1.2"
-clap_complete = "4.4.10"
+clap_complete = "4.5.2"
 flate2 = "1.0.28"
 fs-mistrust = "0.7.8"
 log = "0.4.21"
