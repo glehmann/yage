@@ -42,7 +42,7 @@ assert_fs = "1.1"
 lipsum = "0.9"
 escargot = "0.5"
 predicates-tree = "1.0.9"
-uuid = { version = "1.8.0", features = ["v4"] }
+uuid = { version = "1.10.0", features = ["v4"] }
 pretty_assertions = "1.4.0"
 
 [profile.release]
