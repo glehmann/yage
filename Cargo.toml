@@ -21,7 +21,7 @@ members = ["xtask"]
 age = "0.10.0"
 base64 = "0.22.1"
 clap = { version = "4.5.4", features = ["derive", "env", "wrap_help"] }
-clap-verbosity-flag = "2.1.2"
+clap-verbosity-flag = "2.2.1"
 clap_complete = "4.5.3"
 flate2 = "1.0.30"
 fs-mistrust = "0.7.11"
