@@ -10,4 +10,4 @@ authors = ["Gaëtan Lehmann <gaetan.lehmann@gmail.com>"]
 yage = { path=".." }
 clap = { version = "4.5.13", features = ["derive", "env", "wrap_help"] }
 clap-markdown = "0.1.4"
-clap_mangen = "0.2.23"
+clap_mangen = "0.2.24"
