@@ -18,7 +18,7 @@ keywords = ["secret", "yaml", "encryption", "cli", "age"]
 members = ["xtask"]
 
 [dependencies]
-age = "0.10.0"
+age = "0.10.1"
 base64 = "0.22.1"
 clap = { version = "4.5.13", features = ["derive", "env", "wrap_help"] }
 clap-verbosity-flag = "2.2.1"
