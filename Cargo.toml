@@ -24,7 +24,7 @@ clap = { version = "4.5.13", features = ["derive", "env", "wrap_help"] }
 clap-verbosity-flag = "3.0.2"
 clap_complete = "4.5.13"
 flate2 = "1.0.35"
-fs-mistrust = "0.8.1"
+fs-mistrust = "0.8.3"
 log = "0.4.22"
 ocli = "0.1.1"
 serde_yaml = "0.9.33"
