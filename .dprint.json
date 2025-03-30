@@ -1,0 +1,10 @@
+{
+  "lineWidth": 99,
+  "markdown": {
+    "textWrap": "always"
+  },
+  "excludes": [],
+  "plugins": [
+    "https://plugins.dprint.dev/markdown-0.18.0.wasm",
+  ]
+}

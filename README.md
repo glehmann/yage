@@ -2,8 +2,8 @@
 
 A simple tool to manage encrypted secrets in YAML files with age encryption.
 
-`yage` is using [age encryption](https://github.com/FiloSottile/age) to encrypt the *values*
-in a [YAML](https://yaml.org/) file while keeping the *keys* unchanged.
+`yage` is using [age encryption](https://github.com/FiloSottile/age) to encrypt the _values_ in a
+[YAML](https://yaml.org/) file while keeping the _keys_ unchanged.
 
 A simple yaml file like this one:
 
@@ -23,23 +23,26 @@ backend:
   password: yage[YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAyRVUyTHpmQnZuTlc5MGJhODFuSE5WMmdzalNid0ExamliNDREbWlJUXdvClFhS3JGSGV2cjlnL0dWUnNwSDNvWGVHUDVDendkNzFWWXJCcTNDTVJNLzgKLT4geW0tZ3JlYXNlIF8zJ3MpXksKeXRwMW9aeitydwotLS0gWVNjbnZsUmNRWTdtM0pjVjNKQjBDZ1k2cVNhcWkwMnAxREwwMXptREhLZwrpCkrMFiq/XWfAyFRrLuLkkEPhnZ9Kt68pg5ENgDTV9+3iRcy6XKYdkqnEBRidMg==|r:age15eesfkh778yljxzgwdq5vaqmmchg5py480vplsymzzqf0dwe5gnqrexdq6]
 ```
 
-Having the keys unencrypted allows to easy management of the file in a version control system, like git,
-and to use this file in a CI/CD pipeline or in a [gitops](https://en.wikipedia.org/wiki/DevOps#GitOps)
-workflows.
+Having the keys unencrypted allows to easy management of the file in a version control system, like
+git, and to use this file in a CI/CD pipeline or in a
+[gitops](https://en.wikipedia.org/wiki/DevOps#GitOps) workflows.
 
-If you think this looks a lot like [SOPS](https://getsops.io/), you're right! This is basically what
-SOPS is doing, but with some key differences:
-* `yage` doesn't include any metadata in the encrypted file, particularly no [MAC](https://en.wikipedia.org/wiki/Message_authentication_code).
-* `yage` is focused on age encryption, and includes everything required in a single binary.
+If you think this looks a lot like [SOPS](https://getsops.io/), you're right! This is basically
+what SOPS is doing, but with some key differences:
 
-The lack of MAC, while it could be seen as a missed opportunity to add some security, actually allows
-some interesting use cases:
-  * the encrypted file can be modified by someone who only has the public key, while still preserving
-    the encrypted values.
-  * the encrypted file can be modified by multiple persons and merged in a version control system without
-    having to decrypt it first.
-  * the encrypted file only contains the original keys and the encrypted values, so it can be used
-    to verify that it is usable for a specific task without having to decrypt it or remove the metadata.
+- `yage` doesn't include any metadata in the encrypted file, particularly no
+  [MAC](https://en.wikipedia.org/wiki/Message_authentication_code).
+- `yage` is focused on age encryption, and includes everything required in a single binary.
+
+The lack of MAC, while it could be seen as a missed opportunity to add some security, actually
+allows some interesting use cases:
+
+- The encrypted file can be modified by someone who only has the public key, while still preserving
+  the encrypted values.
+- The encrypted file can be modified by multiple persons and merged in a version control system
+  without having to decrypt it first.
+- The encrypted file only contains the original keys and the encrypted values, so it can be used to
+  verify that it is usable for a specific task without having to decrypt it or remove the metadata.
 
 ## Installation
 
@@ -48,7 +51,8 @@ some interesting use cases:
 Go to the [releases page](https://github.com/glehmann/yage/releases), download the binary for your
 platform, extract it, and put the `yage` binary in a directory in your `PATH`.
 
-For example, on linux with an intel/amd64 processor, you can run the following commands to install `yage` in `~/.local/bin`:
+For example, on linux with an intel/amd64 processor, you can run the following commands to install
+`yage` in `~/.local/bin`:
 
 ```sh
 curl -ssL https://github.com/glehmann/yage/releases/download/0.5.0/yage-0.5.0-linux-amd64.tar.gz | tar xzf - -C ~/.local/bin --strip-components=1
@@ -60,9 +64,9 @@ curl -ssL https://github.com/glehmann/yage/releases/download/0.5.0/yage-0.5.0-li
 
 Here is how you can use it to encrypt a file in place:
 
-~~~sh
+```sh
 docker run --rm -t -v $(pwd):/src ghcr.io/glehmann/yage:0.5.0 encrypt -iR prod.pub secrets.yaml
-~~~
+```
 
 ### From source
 
@@ -122,8 +126,9 @@ $ yage keygen -o prod.key -p prod.pub
 Public key: age15eesfkh778yljxzgwdq5vaqmmchg5py480vplsymzzqf0dwe5gnqrexdq6
 ```
 
-The public key can be shared with anyone. It allows everybody that has that key to encrypt a secret that
-can be decrypted only by someone who has access to the private key. The private key must be kept secret.
+The public key can be shared with anyone. It allows everybody that has that key to encrypt a secret
+that can be decrypted only by someone who has access to the private key. The private key must be
+kept secret.
 
 Both keys are just text:
 
@@ -139,19 +144,22 @@ $ git add prod.pub
 $ git commit -m "Add prod public key"
 ```
 
-Make sure that the private key won't be committed by mistake in the repository, for example, by adding it
-to the `.gitignore` file, and by using a tool like [gitleaks](https://github.com/gitleaks/gitleaks).
+Make sure that the private key won't be committed by mistake in the repository, for example, by
+adding it to the `.gitignore` file, and by using a tool like
+[gitleaks](https://github.com/gitleaks/gitleaks).
 
 ```
 $ echo "*.key" > .gitignore
 ```
 
 The private key should be kept in a secure place, for example, in a password manager. It may also
-be added to a CI/CD pipeline as [a secret](https://docs.github.com/actions/security-guides/encrypted-secrets).
+be added to a CI/CD pipeline as
+[a secret](https://docs.github.com/actions/security-guides/encrypted-secrets).
 
-Once you have a private and a public key, you can encrypt a YAML file. The `--recipient-file` or `-R`
-option is used to specify a file containing the public keys to use for encryption. The recipients
-can also be specified directly on the command line with the `--recipient` or `-r` option.
+Once you have a private and a public key, you can encrypt a YAML file. The `--recipient-file` or
+`-R` option is used to specify a file containing the public keys to use for encryption. The
+recipients can also be specified directly on the command line with the `--recipient` or `-r`
+option.
 
 ```sh
 $ yage encrypt --recipient-file prod.pub secrets.yaml --output secrets.enc.yaml
@@ -163,8 +171,9 @@ If you prefer you can encrypt the file in place wit the `--in-place` or `-i` opt
 $ yage encrypt -iR prod.pub secrets.yaml
 ```
 
-You need the private key to have access to the decrypted values, so if you don't have it,
-the encrypted file is showing you what is encrypted, for example `backend.password`, but not the values.
+You need the private key to have access to the decrypted values, so if you don't have it, the
+encrypted file is showing you what is encrypted, for example `backend.password`, but not the
+values.
 
 ```yaml
 backend:
@@ -235,10 +244,11 @@ $ yage edit -K prod.key secrets.yaml
 ```
 
 The file is edited in clear in the editor and re-encrypted when you save and quit. Here again, only
-the modified values are re-encrypted. The others are left unchanged to allow easy tracking of changes.
+the modified values are re-encrypted. The others are left unchanged to allow easy tracking of
+changes.
 
-Finally, with the private key, you can use the secrets in the encrypted file to run a command
-with the environment variables set to the decrypted values in a single command:
+Finally, with the private key, you can use the secrets in the encrypted file to run a command with
+the environment variables set to the decrypted values in a single command:
 
 ```sh
 $ yage run -K prod.key secrets.yaml env terraform apply
@@ -246,9 +256,10 @@ $ yage run -K prod.key secrets.yaml env terraform apply
 
 ## Pre-commit hook
 
-`yage` can be used in a [pre-commit hook](https://pre-commit.com/) to make sure that the secrets are always encrypted before
-committing them to the repository. Here is an example of a `.pre-commit-config.yaml` file that
-uses `yage` to detect the non-encrypted secrets in a YAML file before committing them:
+`yage` can be used in a [pre-commit hook](https://pre-commit.com/) to make sure that the secrets
+are always encrypted before committing them to the repository. Here is an example of a
+`.pre-commit-config.yaml` file that uses `yage` to detect the non-encrypted secrets in a YAML file
+before committing them:
 
 ```yaml
 repos:
@@ -274,32 +285,36 @@ repos:
         args: ["--in-place", "--recipient-file=prod.pub"]
 ```
 
-`yage-detect` and `yage-encrypt` hooks require the `yage` binary to be installed in the environment where the hook is
-running.
+`yage-detect` and `yage-encrypt` hooks require the `yage` binary to be installed in the environment
+where the hook is running.
 
-The `yage-detect-rust` and `yage-encrypt-rust` hooks are other available variants that
-build yage from source.
+The `yage-detect-rust` and `yage-encrypt-rust` hooks are other available variants that build yage
+from source.
 
-If you're already using docker in your project, the easiest alternatives are the `yage-detect-docker` and
-`yage-encrypt-docker` hooks. They only require docker to be installed in the environment where the hook is running.
-The `yage` image is downloaded automatically when the hook is run for the first time.
+If you're already using docker in your project, the easiest alternatives are the
+`yage-detect-docker` and `yage-encrypt-docker` hooks. They only require docker to be installed in
+the environment where the hook is running. The `yage` image is downloaded automatically when the
+hook is run for the first time.
 
 ## Why?
 
-Mostly to unlock the ability to add values to an encrypted file without having to decrypt it,
-thing that is not possible with SOPS. Something I've not been the only one frustrated with, see
+Mostly to unlock the ability to add values to an encrypted file without having to decrypt it, thing
+that is not possible with SOPS. Something I've not been the only one frustrated with, see
 [here](https://github.com/getsops/sops/discussions/1081),
 [here](https://stackoverflow.com/questions/74103453/is-it-possible-to-update-a-sops-encrypted-file-without-decrypting-it-first),
-[here](https://github.com/getsops/sops/issues/1117), [here](https://github.com/getsops/sops/issues/833), …
+[here](https://github.com/getsops/sops/issues/1117),
+[here](https://github.com/getsops/sops/issues/833), …
 
 And because writing command line tools in rust is fun!
 
 ## Still to be done
 
-* [ ] Support comments. Sadly no YAML library that I know of supports comments, so this will be a bit tricky.
-* [ ] Support age plugins. age has a plugin system that could be used to add support for other encryption methods.
-* [ ] Support multi-document YAML files. This could help to make the CLI more consistent between in place and
-      standard output operations.
+- [ ] Support comments. Sadly no YAML library that I know of supports comments, so this will be a
+      bit tricky.
+- [ ] Support age plugins. `age` has a plugin system that could be used to add support for other
+      encryption methods.
+- [ ] Support multi-document YAML files. This could help to make the CLI more consistent between in
+      place and standard output operations.
 
 ## License
 
