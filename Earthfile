@@ -5,7 +5,7 @@ ARG --global CROSS_VERSION=0.2.5
 
 cross-deps:
     ARG NATIVEPLATFORM
-    FROM --platform=$NATIVEPLATFORM rust:slim
+    FROM --platform=$NATIVEPLATFORM rust:1.84-slim
     RUN apt-get update \
         && apt-get install -y docker.io jq wget \
         && apt-get clean
