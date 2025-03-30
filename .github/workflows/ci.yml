@@ -177,6 +177,8 @@ jobs:
 
     - name: Run tests
       run: ${{ env.CARGO }} test --workspace ${{ env.TARGET_FLAGS }} --release
+      env:
+        NO_COLOR: "true"
 
   rustfmt:
     runs-on: ubuntu-latest
