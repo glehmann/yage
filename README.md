@@ -23,20 +23,20 @@ backend:
   password: yage[YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAyRVUyTHpmQnZuTlc5MGJhODFuSE5WMmdzalNid0ExamliNDREbWlJUXdvClFhS3JGSGV2cjlnL0dWUnNwSDNvWGVHUDVDendkNzFWWXJCcTNDTVJNLzgKLT4geW0tZ3JlYXNlIF8zJ3MpXksKeXRwMW9aeitydwotLS0gWVNjbnZsUmNRWTdtM0pjVjNKQjBDZ1k2cVNhcWkwMnAxREwwMXptREhLZwrpCkrMFiq/XWfAyFRrLuLkkEPhnZ9Kt68pg5ENgDTV9+3iRcy6XKYdkqnEBRidMg==|r:age15eesfkh778yljxzgwdq5vaqmmchg5py480vplsymzzqf0dwe5gnqrexdq6]
 ```
 
-Having the keys unencrypted allows to easily manage the file in a version control system, like git,
+Having the keys unencrypted allows to easy management of the file in a version control system, like git,
 and to use this file in a CI/CD pipeline or in a [gitops](https://en.wikipedia.org/wiki/DevOps#GitOps)
 workflows.
 
 If you think this looks a lot like [SOPS](https://getsops.io/), you're right! This is basically what
-SOPS is doing, but we some key differences:
-* `yage` doesn't include any metadata in the encrypted file, in particular no [MAC](https://en.wikipedia.org/wiki/Message_authentication_code).
-* `yage` is focused on age encryption, and include everything required in a single binary.
+SOPS is doing, but with some key differences:
+* `yage` doesn't include any metadata in the encrypted file, particularly no [MAC](https://en.wikipedia.org/wiki/Message_authentication_code).
+* `yage` is focused on age encryption, and includes everything required in a single binary.
 
 The lack of MAC, while it could be seen as a missed opportunity to add some security, actually allows
 some interesting use cases:
-  * the encrypted file can modified by someone that only has the public key, while still preserving
+  * the encrypted file can be modified by someone who only has the public key, while still preserving
     the encrypted values.
-  * the encrypted file can modified by multiple persons and merged in a version control system without
+  * the encrypted file can be modified by multiple persons and merged in a version control system without
     having to decrypt it first.
   * the encrypted file only contains the original keys and the encrypted values, so it can be used
     to verify that it is usable for a specific task without having to decrypt it or remove the metadata.
@@ -46,9 +46,9 @@ some interesting use cases:
 ### From binaries
 
 Go to the [releases page](https://github.com/glehmann/yage/releases), download the binary for your
-platform, extract it and put the `yage` binary in a directory in your `PATH`.
+platform, extract it, and put the `yage` binary in a directory in your `PATH`.
 
-For example on linux with an intel/amd64 processor, you can run the following commands to install `yage` in `~/.local/bin`:
+For example, on linux with an intel/amd64 processor, you can run the following commands to install `yage` in `~/.local/bin`:
 
 ```sh
 curl -ssL https://github.com/glehmann/yage/releases/download/0.5.0/yage-0.5.0-linux-amd64.tar.gz | tar xzf - -C ~/.local/bin --strip-components=1
@@ -107,7 +107,7 @@ Options:
 
 See also the [markdown version of the command line reference](doc/CommandLineHelp.md).
 
-You may also find convenient to install the completion for your shell. For example for fish:
+You may also find it convenient to install the completion for your shell. For example, for fish:
 
 ```sh
 $ yage --completion fish > ~/.config/fish/completions/yage.fish
@@ -115,7 +115,7 @@ $ yage --completion fish > ~/.config/fish/completions/yage.fish
 
 ## Usage
 
-First generate a new age key pair:
+First, generate a new age key pair:
 
 ```sh
 $ yage keygen -o prod.key -p prod.pub
@@ -139,14 +139,14 @@ $ git add prod.pub
 $ git commit -m "Add prod public key"
 ```
 
-Make sure that the private key won't be committed by mistake in the repository, for example by adding it
+Make sure that the private key won't be committed by mistake in the repository, for example, by adding it
 to the `.gitignore` file, and by using a tool like [gitleaks](https://github.com/gitleaks/gitleaks).
 
 ```
 $ echo "*.key" > .gitignore
 ```
 
-The private key should be kept in a secure place, for example in a password manager. It may also
+The private key should be kept in a secure place, for example, in a password manager. It may also
 be added to a CI/CD pipeline as [a secret](https://docs.github.com/actions/security-guides/encrypted-secrets).
 
 Once you have a private and a public key, you can encrypt a YAML file. The `--recipient-file` or `-R`
@@ -216,10 +216,10 @@ Or just do it in place:
 $ yage decrypt -iK prod.key secrets.yaml
 ```
 
-If your decrypting in a CI/CD pipeline, you may find convenient to put the private key in the
+If you're decrypting in a CI/CD pipeline, you may find it convenient to put the private key in the
 `YAGE_KEY` environment variable. This way you can just use `yage decrypt -i secrets.yaml`.
 
-You may also find convenient to pass the private key on the standard input, for example to avoid
+You may also find it convenient to pass the private key on the standard input, for example to avoid
 storing the private key on disk:
 
 ```sh
@@ -234,7 +234,7 @@ $ export EDITOR=micro
 $ yage edit -K prod.key secrets.yaml
 ```
 
-The file is edited in clear in the editor and re-encrypted when you save and quit. Here again only
+The file is edited in clear in the editor and re-encrypted when you save and quit. Here again, only
 the modified values are re-encrypted. The others are left unchanged to allow easy tracking of changes.
 
 Finally, with the private key, you can use the secrets in the encrypted file to run a command
