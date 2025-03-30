@@ -203,3 +203,19 @@ jobs:
         components: clippy
     - name: Lint code with Clippy
       run: cargo clippy --all-targets -- -D warnings
+
+  dependabot-auto-merge:
+    needs:
+      - test
+      - rustfmt
+      - clippy
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-24.04
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
+    steps:
+    - run: gh pr merge --auto --rebase "$PR_URL"
+      env:
+        PR_URL: ${{github.event.pull_request.html_url}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
