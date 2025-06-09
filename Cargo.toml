@@ -23,7 +23,7 @@ base64 = "0.22.1"
 clap = { version = "4.5.13", features = ["derive", "env", "wrap_help"] }
 clap-verbosity-flag = "3.0.3"
 clap_complete = "4.5.13"
-flate2 = "1.1.1"
+flate2 = "1.1.2"
 fs-mistrust = "0.9.2"
 log = "0.4.27"
 ocli = "0.2.1"
