@@ -38,7 +38,7 @@ pub fn recipients(args: &RecipientsArgs) -> Result<i32> {
         let mut recipients: Vec<_> = recipients.iter().map(|r| r.to_string()).collect();
         recipients.sort();
         for recipient in &recipients {
-            writeln!(output, "{}", recipient).path_ctx(&args.output)?;
+            writeln!(output, "{recipient}").path_ctx(&args.output)?;
         }
     } else {
         for file in &args.files {

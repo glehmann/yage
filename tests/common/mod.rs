@@ -144,8 +144,8 @@ pub fn is_pub_key_info() -> impl predicates::Predicate<str> {
 
 pub fn create_key(tmp: &TempDir) -> (PathBuf, PathBuf) {
     let id = uuid::Uuid::new_v4();
-    let key_path = tmp.child(format!("{}.key", id));
-    let public_path = tmp.child(format!("{}.pub", id));
+    let key_path = tmp.child(format!("{id}.key"));
+    let public_path = tmp.child(format!("{id}.pub"));
     yage!("keygen", "--output", &key_path, "--public", &public_path)
         .success()
         .stdout(is_empty())

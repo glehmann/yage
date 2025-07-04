@@ -101,7 +101,7 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
     let mut to_encrypt_data = edited_data.clone();
     for d in d.calls {
         if let ChangeType::Unchanged(keys, _) = d {
-            debug!("keeping unchanged key: {:?}", keys);
+            debug!("keeping unchanged key: {keys:?}");
             let v = yaml_get(&input_data, &keys)?;
             to_encrypt_data.set(&keys, v);
         }
