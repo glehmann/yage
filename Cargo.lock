@@ -722,14 +722,13 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
 name = "fs-mistrust"
-version = "0.9.3"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bac926cebf23b68e62f518086eb5671f3d24daa00c395e2142840adef3dc476"
+checksum = "198b8f9ab4cff63b5c91e9e64edd4e6b43cd7fe7a52519a03c6c32ea0acfa557"
 dependencies = [
  "derive_builder_fork_arti",
  "dirs",
  "libc",
- "once_cell",
  "pwd-grp",
  "thiserror 2.0.12",
  "walkdir",
