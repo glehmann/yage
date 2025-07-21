@@ -29,7 +29,7 @@ log = "0.4.27"
 ocli = "0.2.1"
 serde_yaml = "0.9.33"
 shlex = "1.3.0"
-strum = { version = "0.27.1", features = ["derive"] }
+strum = { version = "0.27.2", features = ["derive"] }
 substring = "1.4.5"
 tempfile = "3.20.0"
 thiserror = "2.0.12"
