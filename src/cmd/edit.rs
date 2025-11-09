@@ -7,9 +7,9 @@ use std::process::Command;
 use clap::Args;
 use serde_yaml as sy;
 use tempfile::tempdir;
+use treediff::Mutable;
 use treediff::tools::{ChangeType, Recorder};
 use treediff::value::Key;
-use treediff::Mutable;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{IOResultExt, Result, YageError};

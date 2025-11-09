@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use clap::{arg, command, Args};
+use clap::{Args, arg, command};
 use serde_yaml as sy;
 
 use crate::error::Result;
-use crate::{check_encrypted, check_recipients, stdin_or_file, EncryptionStatus};
+use crate::{EncryptionStatus, check_encrypted, check_recipients, stdin_or_file};
 
 /// Check the encryption status of a YAML file
 #[derive(Args, Debug)]

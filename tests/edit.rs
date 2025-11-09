@@ -4,7 +4,7 @@ use common::*;
 use predicates::str::{contains, is_empty};
 use pretty_assertions::{assert_eq, assert_ne};
 use serde_yaml as sy;
-use yage::{check_encrypted, EncryptionStatus};
+use yage::{EncryptionStatus, check_encrypted};
 
 // editor command that add "hop: hop" to the file
 #[cfg(windows)]

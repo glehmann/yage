@@ -26,7 +26,7 @@ pub mod cmd {
 }
 
 use std::fs::{File, OpenOptions};
-use std::io::{stdin, stdout, BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Read, Write, stdin, stdout};
 #[cfg(unix)]
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;

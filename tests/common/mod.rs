@@ -9,7 +9,7 @@ use std::{
 };
 
 use assert_fs::fixture::ChildPath;
-use assert_fs::{prelude::*, TempDir};
+use assert_fs::{TempDir, prelude::*};
 use predicates::prelude::predicate::str::*;
 use predicates_tree::CaseTreeExt;
 
