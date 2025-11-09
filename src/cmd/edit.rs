@@ -1,7 +1,7 @@
 use std::fs;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use clap::Args;
@@ -65,7 +65,7 @@ pub struct EditArgs {
 }
 
 pub fn edit(args: &EditArgs) -> Result<i32> {
-    if args.file == PathBuf::from("-") {
+    if args.file == Path::new("-") {
         return Err(YageError::InPlaceStdin);
     }
     let identities = load_identities(&args.keys, &args.key_files)?;
