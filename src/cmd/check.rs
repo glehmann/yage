@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Args, arg, command};
+use clap::Args;
 use serde_yaml as sy;
 
 use crate::error::Result;
