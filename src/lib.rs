@@ -118,11 +118,11 @@ pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Val
         Ok(yev) => {
             // raw value -> decoded value -> decrypted value -> decompressed value -> deserialized value
             let decoded = BASE64_STANDARD.decode(yev.data)?;
-            let decryptor = match age::Decryptor::new(&decoded[..])? {
-                age::Decryptor::Recipients(d) => Ok(d),
-                _ => Err(YageError::PassphraseUnsupported),
-            }?
-            .decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
+            let decryptor = age::Decryptor::new(&decoded[..])?;
+            if decryptor.is_scrypt() {
+                return Err(YageError::PassphraseUnsupported);
+            }
+            let decryptor = decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
             let decompressor = flate2::read::DeflateDecoder::new(decryptor);
             let deserialized: sy::Value = sy::from_reader(decompressor)?;
             Ok(deserialized)
@@ -142,9 +142,14 @@ pub fn load_identities(keys: &[String], key_files: &[PathBuf]) -> Result<Vec<x25
     for key_file in key_files.iter() {
         debug!("loading key file: {key_file:?}");
         let input = stdin_or_private_file(key_file)?;
-        let keys = age::IdentityFile::from_buffer(input).path_ctx(key_file)?;
-        for key in keys.into_identities() {
-            let age::IdentityFileEntry::Native(key) = key;
+        for line in input.lines() {
+            let line = line.path_ctx(key_file)?;
+            let line = line.trim().to_string();
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            let key = x25519::Identity::from_str(&line)
+                .map_err(|e| YageError::KeyParse { message: e.into() })?;
             identities.push(key);
         }
     }
@@ -189,15 +194,14 @@ pub fn encrypt_yaml(value: &sy::Value, recipients: &[x25519::Recipient]) -> Resu
 
 pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Result<String> {
     // yaml value -> serialized value -> compressed value -> encrypted value -> encoded value
-    type Recipients = Vec<Box<dyn age::Recipient + Send + 'static>>;
-    let recipients_dyn = recipients
-        .iter()
-        .map(|r| Box::new(r.clone()) as Box<dyn age::Recipient + Send + 'static>)
-        .collect::<Recipients>();
     let mut encrypted = vec![];
-    let mut encryptor = age::Encryptor::with_recipients(recipients_dyn)
-        .ok_or(YageError::NoRecipients)?
-        .wrap_output(&mut encrypted)?;
+    let mut encryptor = match age::Encryptor::with_recipients(
+        recipients.iter().map(|r| r as &dyn age::Recipient),
+    ) {
+        Err(age::EncryptError::MissingRecipients) => return Err(YageError::NoRecipients),
+        r => r?,
+    }
+    .wrap_output(&mut encrypted)?;
     let compressor =
         flate2::write::DeflateEncoder::new(&mut encryptor, flate2::Compression::new(6));
     sy::to_writer(compressor, value)?;
