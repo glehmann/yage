@@ -122,7 +122,8 @@ pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Val
             if decryptor.is_scrypt() {
                 return Err(YageError::PassphraseUnsupported);
             }
-            let decryptor = decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
+            let decryptor =
+                decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
             let decompressor = flate2::read::DeflateDecoder::new(decryptor);
             let deserialized: sy::Value = sy::from_reader(decompressor)?;
             Ok(deserialized)
