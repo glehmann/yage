@@ -1,24 +1,16 @@
 VERSION --global-cache 0.8
-IMPORT github.com/earthly/lib/rust AS rust
 
 ARG --global CROSS_VERSION=0.2.5
 
-cross-deps:
+cross:
     ARG NATIVEPLATFORM
-    FROM --platform=$NATIVEPLATFORM rust:1.88-slim
+    FROM --platform=$NATIVEPLATFORM rust:1.96-slim
     RUN apt-get update \
-        && apt-get install -y docker.io jq wget \
+        && apt-get install -y curl \
         && apt-get clean
     WORKDIR /app
-    DO rust+INIT --keep_fingerprints=true
-    # DO rust+CARGO --args="install cross@${CROSS_VERSION}"
-    RUN wget -nv -O- "https://github.com/cross-rs/cross/releases/download/v${CROSS_VERSION}/cross-x86_64-unknown-linux-musl.tar.gz" | tar -xzf - -C /usr/local/bin
-    DO rust+SET_CACHE_MOUNTS_ENV
-    COPY --keep-ts . ./
-    DO rust+CARGO --args=fetch
-
-cross:
-    FROM +cross-deps
+    RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+    RUN cargo binstall cargo-cross
     ARG TARGETPLATFORM
     LET target="unsupported platform"
     IF [ "$TARGETPLATFORM" = "linux/amd64" ]
@@ -36,8 +28,9 @@ cross:
     ELSE IF [ "$TARGETPLATFORM" = "linux/s390x" ]
         SET target=s390x-unknown-linux-gnu
     END
-    DO rust+CROSS --target=$target
-    DO rust+COPY_OUTPUT --output=".+/release/[^\./]+"
+    RUN cargo cross setup --target=$target
+    COPY --keep-ts . ./
+    RUN cargo cross build --release --target=$target
     SAVE ARTIFACT /app/target/$target/release/yage
 
 docker-build:
