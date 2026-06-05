@@ -22,45 +22,53 @@ jobs:
         run: rm -rf /opt/hostedtoolcache
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
           toolchain: stable
 
       - name: Set up QEMU
         id: qemu
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@259a565a6f30a57c28f9ea913f2d359b43ff5fc9
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
 
       - name: Install earthly
-        uses: earthly/actions-setup@v1.0.4
+        uses: earthly/actions-setup@b81a8e082d9fae6174210cfc6e54bd2feb124d94
         with:
           version: 0.8.3
           use-cache: "false"
 
       - name: Login to ghcr.io
-        uses: docker/login-action@v2
+        uses: docker/login-action@0267638d8ae53966df71bb06d552129dd542dfa7
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push the images
-        run: earthly --allow-privileged --push --no-output +docker-multiplatform --tag=${{ github.ref_name }}
+        env:
+          TAG: ${{ github.ref_name }}
+        run: earthly --allow-privileged --push --no-output +docker-multiplatform --tag="${TAG}"
 
       - name: Check the uploaded images
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
           set -ex
           for platform in linux/amd64 linux/arm64 linux/386 linux/arm/v7 linux/arm/v6 linux/ppc64le linux/s390x; do
-            docker run --rm --platform ${platform} ghcr.io/glehmann/yage:${{ github.ref_name }} --version
+            docker run --rm --platform ${platform} ghcr.io/glehmann/yage:"${TAG}" --version
           done
 
       - name: Tag the release as latest
         if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
           curl -sL https://github.com/google/go-containerregistry/releases/download/v0.19.0/go-containerregistry_Linux_x86_64.tar.gz | tar -zxvf - -C /usr/local/bin/ crane
-          crane tag ghcr.io/glehmann/yage:${{ github.ref_name }} latest
+          crane tag ghcr.io/glehmann/yage:"${TAG}" latest

@@ -6,25 +6,26 @@ on:
     tags:
     - "[0-9]+.[0-9]+.[0-9]+"
 
-# We need this to be able to create releases.
-permissions:
-  contents: write
-
 jobs:
   package:
     name: Publish Rust package
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@dc354b3df5a8e4db0bff5361fa176da74fcf3151
         with:
           toolchain: stable
+          cache: false
       - name: Publish to crates.io
         run: cargo publish
         env:
-          CARGO_REGISTRY_TOKEN: ${{secrets.CARGO_REGISTRY_TOKEN}}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   # The create-release job runs purely to initialize the GitHub release itself,
   # and names the release after the `x.y.z` tag that was pushed. It's separate
@@ -32,11 +33,20 @@ jobs:
   create-release:
     name: create-release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - name: Get the release version from the tag
         if: env.VERSION == ''
-        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "VERSION=${TAG}" >> $GITHUB_ENV
+      - name: Store version for later
+        id: version
+        run: echo "value=${VERSION}" >> $GITHUB_OUTPUT
       - name: Show the version
         run: |
           echo "version is: $VERSION"
@@ -52,12 +62,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release create $VERSION --draft --verify-tag --title $VERSION
     outputs:
-      version: ${{ env.VERSION }}
+      version: ${{ steps.version.outputs.value }}
 
   build-release:
     name: build-release
     needs: ['create-release']
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     env:
       # For some builds, we use cross to test on 32-bit and big-endian
       # systems.
@@ -114,10 +126,12 @@ jobs:
             target: x86_64-pc-windows-msvc
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      with:
+        persist-credentials: false
 
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@master
+      uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
       with:
         toolchain: ${{ matrix.rust }}
         target: ${{ matrix.target }}
@@ -163,8 +177,11 @@ jobs:
 
     - name: Determine archive name
       shell: bash
+      env:
+        VERSION_OUTPUT: ${{ needs.create-release.outputs.version }}
       run: |
-        version="${{ needs.create-release.outputs.version }}"
+        version="${VERSION_OUTPUT}"
+        echo "VERSION=$version" >> $GITHUB_ENV
         echo "ARCHIVE=yage-$version-${{ matrix.build }}" >> $GITHUB_ENV
 
     - name: Creating directory for archive
@@ -196,7 +213,9 @@ jobs:
     - name: Upload release archive
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION_ENV: ${{ env.VERSION }}
+        ASSET_ENV: ${{ env.ASSET }}
+        ASSET_SUM_ENV: ${{ env.ASSET_SUM }}
       shell: bash
       run: |
-        version="${{ needs.create-release.outputs.version }}"
-        gh release upload "$version" ${{ env.ASSET }} ${{ env.ASSET_SUM }}
+        gh release upload "${VERSION_ENV}" "${ASSET_ENV}" "${ASSET_SUM_ENV}"

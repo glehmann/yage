@@ -4,3 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Limit the number of open PRs to reduce dependency noise
+    open-pull-requests-limit: 1
+    # Group updates by minor/patch versions
+    versioning-strategy: "increase"
+    cooldown:
+      default-days: 7
