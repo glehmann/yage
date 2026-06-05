@@ -1098,9 +1098,9 @@ dependencies = [
 
 [[package]]
 name = "ocli"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cef10a470d8dcaa98c34db53d68ca9af9f50f656a3a768219c9cfce3ea37044"
+checksum = "c1c12e2d268195e97a68fe93d9a317afb47d2d95080b453cd75e7aec2d51116f"
 dependencies = [
  "log",
  "termcolor",
