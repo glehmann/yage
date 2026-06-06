@@ -38,10 +38,10 @@ jobs:
           image: tonistiigi/binfmt:latest
           platforms: all
 
-      - name: Install earthly
-        uses: earthly/actions-setup@b81a8e082d9fae6174210cfc6e54bd2feb124d94
+      - uses: EarthBuild/actions-setup@e11e36ffea530484da8a4e5a4bd17d69de480786 #v2.0.0
         with:
-          version: 0.8.3
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version: 0.8.17
           use-cache: "false"
 
       - name: Login to ghcr.io
@@ -54,7 +54,7 @@ jobs:
       - name: Build and push the images
         env:
           TAG: ${{ github.ref_name }}
-        run: earthly --allow-privileged --push --no-output +docker-multiplatform --tag="${TAG}"
+        run: earth --push --no-output +docker-multiplatform --tag="${TAG}"
 
       - name: Check the uploaded images
         env:
