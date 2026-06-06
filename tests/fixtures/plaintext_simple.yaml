@@ -1,0 +1,11 @@
+foo: bar
+titi:
+  toto: 42
+array:
+- 1
+- 2
+- 3
+empty_map: {}
+empty_array: []
+empty_string: ''
+empty: null
