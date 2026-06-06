@@ -7,9 +7,6 @@ use std::process::Command;
 use clap::Args;
 use serde_yaml as sy;
 use tempfile::tempdir;
-use treediff::Mutable;
-use treediff::tools::{ChangeType, Recorder};
-use treediff::value::Key;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{IOResultExt, Result, YageError};
@@ -92,41 +89,92 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
     run_editor(&args.editor, &temp_file)?;
 
     let edited_data = read_yaml(&temp_file)?;
-    // find what has not changed, and keep the encrypted data unchanged. That data is encrypted
-    // with a nonce that make it appear different every time it is encrypted, so we avoid
-    // encrypting it again. This way the data that has not changed isn't changed in its
-    // encrypted form.
-    let mut d = Recorder::default();
-    treediff::diff(&previous_data, &edited_data, &mut d);
+    // Find what has not changed, and keep those values from the original
+    // encrypted file unchanged. That data is encrypted with a nonce that
+    // makes it appear different every time it is encrypted, so we avoid
+    // encrypting it again. This way the data that has not changed isn't
+    // changed in its encrypted form.
     let mut to_encrypt_data = edited_data.clone();
-    for d in d.calls {
-        if let ChangeType::Unchanged(keys, _) = d {
-            debug!("keeping unchanged key: {keys:?}");
-            let v = yaml_get(&input_data, &keys)?;
-            to_encrypt_data.set(&keys, v);
-        }
-    }
+    apply_unchanged(&previous_data, &edited_data, &input_data, &mut to_encrypt_data)?;
 
     let output_data = encrypt_yaml(&to_encrypt_data, &recipients)?;
     write_yaml(&args.file, &output_data)?;
     Ok(0)
 }
 
-fn yaml_get<'a>(data: &'a sy::Value, keys: &[Key]) -> Result<&'a sy::Value> {
-    if keys.is_empty() {
-        return Ok(data);
+/// Recursively walk two value trees in tandem. For paths where the previous
+/// and edited values are equal, inject the original (encrypted) value from
+/// `original` into `target`.
+fn apply_unchanged(
+    previous: &sy::Value,
+    edited: &sy::Value,
+    original: &sy::Value,
+    target: &mut sy::Value,
+) -> Result<()> {
+    apply_unchanged_rec(previous, edited, original, target)
+}
+
+fn apply_unchanged_rec(
+    previous: &sy::Value,
+    edited: &sy::Value,
+    original: &sy::Value,
+    target: &mut sy::Value,
+) -> Result<()> {
+    if previous == edited {
+        return Ok(());
     }
-    match &keys[0] {
-        Key::String(k) => {
-            let k: sy::Value = sy::from_str(k)?;
-            let value = data.get(k).ok_or(YageError::KeyNotFound)?;
-            yaml_get(value, &keys[1..])
-        }
-        Key::Index(i) => {
-            let value = data.get(i).ok_or(YageError::KeyNotFound)?;
-            yaml_get(value, &keys[1..])
+    if let sy::Value::Mapping(prev_map) = previous
+        && let sy::Value::Mapping(edit_map) = edited
+        && let sy::Value::Mapping(orig_map) = original
+        && let sy::Value::Mapping(target_map) = target
+    {
+        return apply_unchanged_mapping(prev_map, edit_map, orig_map, target_map);
+    }
+    if let sy::Value::Sequence(prev_seq) = previous
+        && let sy::Value::Sequence(edit_seq) = edited
+        && let sy::Value::Sequence(orig_seq) = original
+        && let sy::Value::Sequence(target_seq) = target
+    {
+        return apply_unchanged_sequence(prev_seq, edit_seq, orig_seq, target_seq);
+    }
+    Ok(())
+}
+
+fn apply_unchanged_mapping(
+    prev_map: &sy::Mapping,
+    edit_map: &sy::Mapping,
+    orig_map: &sy::Mapping,
+    target_map: &mut sy::Mapping,
+) -> Result<()> {
+    for (key, prev_val) in prev_map {
+        if let Some(edit_val) = edit_map.get(key)
+            && let (Some(orig_val), Some(target_val)) = (orig_map.get(key), target_map.get_mut(key))
+        {
+            if prev_val == edit_val {
+                *target_val = orig_val.clone();
+            } else {
+                apply_unchanged_rec(prev_val, edit_val, orig_val, target_val)?;
+            }
         }
     }
+    Ok(())
+}
+
+fn apply_unchanged_sequence(
+    prev_seq: &sy::Sequence,
+    edit_seq: &sy::Sequence,
+    orig_seq: &sy::Sequence,
+    target_seq: &mut sy::Sequence,
+) -> Result<()> {
+    let len = prev_seq.len().min(edit_seq.len()).min(target_seq.len()).min(orig_seq.len());
+    for i in 0..len {
+        if prev_seq[i] == edit_seq[i] {
+            target_seq[i] = orig_seq[i].clone();
+        } else {
+            apply_unchanged_rec(&prev_seq[i], &edit_seq[i], &orig_seq[i], &mut target_seq[i])?;
+        }
+    }
+    Ok(())
 }
 
 fn run_editor(editor: &str, temp_file: &std::path::Path) -> Result<()> {
@@ -137,8 +185,8 @@ fn run_editor(editor: &str, temp_file: &std::path::Path) -> Result<()> {
             // if we can't use the editor string as a command, it may have arguments that we need to split
             if let Some(ref editor_args) = shlex::split(editor) {
                 if editor_args.is_empty() {
-                    // we need at least on element, fallback to the previous error so that the user
-                    // can see its editor value in th error message
+                    // we need at least one element, fallback to the previous error so that the user
+                    // can see its editor value in the error message
                     return Err(err).path_ctx(editor);
                 }
                 Command::new(&editor_args[0])

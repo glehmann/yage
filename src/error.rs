@@ -38,9 +38,6 @@ pub enum YageError {
     #[error("invalid value encoding")]
     InvalidValueEncoding,
 
-    #[error("key not found")]
-    KeyNotFound,
-
     #[error("can't parse key: {message}")]
     KeyParse { message: String },
 
