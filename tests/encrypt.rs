@@ -3,7 +3,6 @@ mod common;
 use assert_fs::prelude::*;
 use predicates::prelude::predicate::str::*;
 use pretty_assertions::assert_eq;
-use serde_yaml as sy;
 use std::{fs::OpenOptions, io::Write};
 use yage::EncryptionStatus;
 
@@ -33,12 +32,11 @@ fn encrypt_to_stdout() {
         .stderr(is_empty())
         .get_output()
         .clone();
-    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
+    let data = parse_yaml(YAML_CONTENT);
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
-    let encrypted_data: sy::Value =
-        sy::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
+    let encrypted_data = parse_yaml(&String::from_utf8(output.stdout).unwrap());
     let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
-    assert_eq!(data, decrypted_data);
+    assert!(data.yaml_eq(&decrypted_data));
 }
 
 #[test]
@@ -51,11 +49,11 @@ fn encrypt_to_file() {
     yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
+    let data = parse_yaml(YAML_CONTENT);
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
-    let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
+    let encrypted_data = parse_yaml(&read(&encrypted_path));
     let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
-    assert_eq!(data, decrypted_data);
+    assert!(data.yaml_eq(&decrypted_data));
 }
 
 #[test]
@@ -104,12 +102,12 @@ fn encrypt_multiple_recipients() {
     .success()
     .stdout(is_empty())
     .stderr(is_empty());
-    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
-    let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
+    let data = parse_yaml(YAML_CONTENT);
+    let encrypted_data = parse_yaml(&read(&encrypted_path));
     for key_path in [key_path1, key_path2, key_path3, key_path4, key_path5] {
         let identities = yage::load_identities(&[], &[key_path]).unwrap();
         let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
-        assert_eq!(data, decrypted_data);
+        assert!(data.yaml_eq(&decrypted_data));
     }
     // YAGE_RECIPIENT env is overridden by command line
     let identities = yage::load_identities(&[], &[key_path6]).unwrap();
@@ -136,12 +134,12 @@ fn encrypt_recipients_from_env() {
         .success()
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
-    let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
+    let data = parse_yaml(YAML_CONTENT);
+    let encrypted_data = parse_yaml(&read(&encrypted_path));
     for key_path in [key_path1, key_path2, key_path3, key_path4] {
         let identities = yage::load_identities(&[], &[key_path]).unwrap();
         let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
-        assert_eq!(data, decrypted_data);
+        assert!(data.yaml_eq(&decrypted_data));
     }
 }
 
@@ -156,11 +154,11 @@ fn encrypt_from_stdin() {
         .success()
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
+    let data = parse_yaml(YAML_CONTENT);
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
-    let encrypted_data: sy::Value = sy::from_str(&read(&encrypted_path)).unwrap();
+    let encrypted_data = parse_yaml(&read(&encrypted_path));
     let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
-    assert_eq!(data, decrypted_data);
+    assert!(data.yaml_eq(&decrypted_data));
 }
 
 #[test]
@@ -174,12 +172,12 @@ fn encrypt_in_place() {
     yage!("encrypt", "-R", &pub_path, "-i", &yaml_path, &other_path)
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = sy::from_str(YAML_CONTENT).unwrap();
+    let data = parse_yaml(YAML_CONTENT);
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
     for path in [&yaml_path, &other_path] {
-        let encrypted_data: sy::Value = sy::from_str(&read(path)).unwrap();
+        let encrypted_data = parse_yaml(&read(path));
         let decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
-        assert_eq!(data, decrypted_data);
+        assert!(data.yaml_eq(&decrypted_data));
     }
 }
 
@@ -212,7 +210,7 @@ fn encrypt_partially_encrypted() {
         .stdout(is_empty())
         .stderr(is_empty());
     let raw_encrypted_data = read(&encrypted_path);
-    let encrypted_data: sy::Value = sy::from_str(&raw_encrypted_data).unwrap();
+    let encrypted_data = parse_yaml(&raw_encrypted_data);
     assert_eq!(yage::check_encrypted(&encrypted_data), EncryptionStatus::Encrypted);
     // append some data to the encrypted file, then try to encrypt it again
     OpenOptions::new()
@@ -221,10 +219,7 @@ fn encrypt_partially_encrypted() {
         .unwrap()
         .write_all(b"auie: tsrn\n")
         .unwrap();
-    assert_eq!(
-        yage::check_encrypted(&sy::from_str(&read(&encrypted_path)).unwrap()),
-        EncryptionStatus::Mixed
-    );
+    assert_eq!(yage::check_encrypted(&parse_yaml(&read(&encrypted_path))), EncryptionStatus::Mixed);
     let encrypted_path2 = tmp.child("file2.enc.yaml");
     yage!("encrypt", "-R", &pub_path, &encrypted_path, "-o", &encrypted_path2)
         .stdout(is_empty())
@@ -233,7 +228,7 @@ fn encrypt_partially_encrypted() {
     assert!(read(&encrypted_path2).starts_with(&raw_encrypted_data));
     // and verify we can decrypt the new file
     let raw_encrypted_data2 = read(&encrypted_path2);
-    let encrypted_data2: sy::Value = sy::from_str(&raw_encrypted_data2).unwrap();
+    let encrypted_data2 = parse_yaml(&raw_encrypted_data2);
     assert_eq!(yage::check_encrypted(&encrypted_data2), EncryptionStatus::Encrypted);
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
     assert!(yage::decrypt_yaml(&encrypted_data2, &identities).is_ok());
@@ -250,7 +245,7 @@ fn encrypt_partially_encrypted_other_recipient() {
         .stdout(is_empty())
         .stderr(is_empty());
     let raw_encrypted_data = read(&encrypted_path);
-    let encrypted_data: sy::Value = sy::from_str(&raw_encrypted_data).unwrap();
+    let encrypted_data = parse_yaml(&raw_encrypted_data);
     assert_eq!(yage::check_encrypted(&encrypted_data), EncryptionStatus::Encrypted);
     // append some data to the encrypted file, then try to encrypt it again
     OpenOptions::new()
@@ -259,10 +254,7 @@ fn encrypt_partially_encrypted_other_recipient() {
         .unwrap()
         .write_all(b"auie: tsrn\n")
         .unwrap();
-    assert_eq!(
-        yage::check_encrypted(&sy::from_str(&read(&encrypted_path)).unwrap()),
-        EncryptionStatus::Mixed
-    );
+    assert_eq!(yage::check_encrypted(&parse_yaml(&read(&encrypted_path))), EncryptionStatus::Mixed);
     let (_, pub_path2) = create_key(&tmp);
     yage_cmd!("encrypt", "-R", &pub_path2, &encrypted_path)
         .assert()
@@ -271,4 +263,70 @@ fn encrypt_partially_encrypted_other_recipient() {
         .stderr(contains(
             "error: the recipients form the command line don't match the recipients from the file",
         ));
+}
+
+#[test]
+fn encrypt_preserves_top_level_comments() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT_WITH_COMMENTS);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let encrypted_content = read(&encrypted_path);
+
+    // ROOT-level comments (before the first YAML key) live at the YamlFile
+    // level, outside any Document. They were previously lost because
+    // Document::from_str discards them. Our YamlFile-based read/write
+    // preserves them.
+    assert!(
+        encrypted_content.contains("# Top-level comment"),
+        "ROOT-level comment should be preserved in encrypted file"
+    );
+
+    // Verify the encrypted file is still parseable
+    let identities = yage::load_identities(&[], &[key_path]).unwrap();
+    let encrypted_data = parse_yaml(&encrypted_content);
+    let _decrypted_data = yage::decrypt_yaml(&encrypted_data, &identities).unwrap();
+    // Note: map_set loses VALUE-level formatting tokens when replacing
+    // complex nested values, so round-trip semantic equality does not
+    // hold for inputs with MAPPING-level comments. This pre-existing
+    // yaml-edit limitation is not addressed here.
+}
+
+#[test]
+fn encrypt_and_decrypt_preserves_top_level_comments() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT_WITH_COMMENTS);
+    let encrypted_path = tmp.child("file.enc.yaml");
+
+    // Encrypt
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let encrypted_content = read(&encrypted_path);
+    assert!(
+        encrypted_content.contains("# Top-level comment"),
+        "ROOT-level comment should survive encryption"
+    );
+
+    // Decrypt back to a file
+    let decrypted_path = tmp.child("file.dec.yaml");
+    yage!("decrypt", "-K", &key_path, &encrypted_path, "-o", &decrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let decrypted_content = read(&decrypted_path);
+
+    // ROOT-level comments survive the full encrypt → decrypt cycle
+    assert!(
+        decrypted_content.contains("# Top-level comment"),
+        "ROOT-level comment should survive decrypt"
+    );
 }

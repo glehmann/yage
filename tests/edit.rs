@@ -3,7 +3,6 @@ mod common;
 use common::*;
 use predicates::str::{contains, is_empty};
 use pretty_assertions::{assert_eq, assert_ne};
-use serde_yaml as sy;
 use yage::{EncryptionStatus, check_encrypted};
 
 // editor command that add "hop: hop" to the file
@@ -23,10 +22,7 @@ fn edit_key_file_from_args() {
     let after_edit_data = read(&encrypted_path);
     assert_ne!(before_edit_data, after_edit_data);
     assert!(after_edit_data.starts_with(&before_edit_data));
-    assert_eq!(
-        check_encrypted(&sy::from_str(&after_edit_data).unwrap()),
-        EncryptionStatus::Encrypted
-    );
+    assert_eq!(check_encrypted(&parse_yaml(&after_edit_data)), EncryptionStatus::Encrypted);
 }
 
 #[cfg(not(windows))]
@@ -44,10 +40,7 @@ fn edit_key_file_from_env() {
     let after_edit_data = read(&encrypted_path);
     assert_ne!(before_edit_data, after_edit_data);
     assert!(after_edit_data.starts_with(&before_edit_data));
-    assert_eq!(
-        check_encrypted(&sy::from_str(&after_edit_data).unwrap()),
-        EncryptionStatus::Encrypted
-    );
+    assert_eq!(check_encrypted(&parse_yaml(&after_edit_data)), EncryptionStatus::Encrypted);
 }
 
 #[cfg(not(windows))]
@@ -64,10 +57,7 @@ fn edit_key_from_env() {
     let after_edit_data = read(&encrypted_path);
     assert_ne!(before_edit_data, after_edit_data);
     assert!(after_edit_data.starts_with(&before_edit_data));
-    assert_eq!(
-        check_encrypted(&sy::from_str(&after_edit_data).unwrap()),
-        EncryptionStatus::Encrypted
-    );
+    assert_eq!(check_encrypted(&parse_yaml(&after_edit_data)), EncryptionStatus::Encrypted);
 }
 
 #[cfg(not(windows))]
@@ -84,10 +74,7 @@ fn edit_key_from_stdin() {
     let after_edit_data = read(&encrypted_path);
     assert_ne!(before_edit_data, after_edit_data);
     assert!(after_edit_data.starts_with(&before_edit_data));
-    assert_eq!(
-        check_encrypted(&sy::from_str(&after_edit_data).unwrap()),
-        EncryptionStatus::Encrypted
-    );
+    assert_eq!(check_encrypted(&parse_yaml(&after_edit_data)), EncryptionStatus::Encrypted);
 }
 
 #[test]

@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use clap::Args;
-use serde_yaml as sy;
+use yaml_edit::YamlNode;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{Result, YageError};
@@ -79,13 +79,13 @@ pub fn env(args: &EnvArgs) -> Result<i32> {
     Ok(status.code().unwrap_or(1))
 }
 
-fn build_env(data: &sy::Value) -> Result<HashMap<String, String>> {
+fn build_env(data: &YamlNode) -> Result<HashMap<String, String>> {
     let mut env = HashMap::new();
     match data {
-        sy::Value::Mapping(mapping) => {
+        YamlNode::Mapping(mapping) => {
             for (key, value) in mapping {
-                let key = plain_value_to_string(key)?;
-                let value = plain_value_to_string(value)?;
+                let key = plain_value_to_string(&key)?;
+                let value = plain_value_to_string(&value)?;
                 env.insert(key, value);
             }
         }
@@ -94,18 +94,9 @@ fn build_env(data: &sy::Value) -> Result<HashMap<String, String>> {
     Ok(env)
 }
 
-fn plain_value_to_string(data: &sy::Value) -> Result<String> {
-    Ok(match data {
-        sy::Value::String(s) => s.to_owned(),
-        sy::Value::Number(n) => {
-            if n.is_f64() {
-                n.as_f64().unwrap().to_string()
-            } else if n.is_i64() {
-                n.as_i64().unwrap().to_string()
-            } else {
-                n.as_u64().unwrap().to_string()
-            }
-        }
-        _ => Err(YageError::NotAStringOrNumber)?,
-    })
+fn plain_value_to_string(data: &YamlNode) -> Result<String> {
+    match data {
+        YamlNode::Scalar(scalar) => Ok(scalar.as_string()),
+        _ => Err(YageError::NotAStringOrNumber),
+    }
 }

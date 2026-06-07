@@ -5,7 +5,10 @@ use clap::Args;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{Result, YageError};
-use crate::{decrypt_yaml, load_identities, read_yaml, write_yaml};
+use crate::{
+    decrypt_yaml, load_identities, read_yaml_file, replace_document_root,
+    replace_yaml_file_document, write_yaml_file,
+};
 
 /// Decrypt the values in a YAML file
 #[derive(Args, Debug)]
@@ -67,9 +70,14 @@ pub fn decrypt(args: &DecryptArgs) -> Result<i32> {
         return Err(YageError::NoKeys);
     }
     for file in &args.files {
-        let input_data = read_yaml(file)?;
+        let (yaml_file, doc, input_data) = read_yaml_file(file)?;
+        if !crate::check_recipients(&input_data) {
+            warn!("{}: inconsistent recipients", file.to_string_lossy());
+        }
         let output_data = decrypt_yaml(&input_data, &identities)?;
-        write_yaml(if args.in_place { file } else { &args.output }, &output_data)?;
+        replace_document_root(&doc, &output_data);
+        replace_yaml_file_document(&yaml_file, &doc);
+        write_yaml_file(if args.in_place { file } else { &args.output }, &yaml_file)?;
     }
     Ok(0)
 }

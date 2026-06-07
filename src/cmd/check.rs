@@ -1,9 +1,11 @@
+use std::io::Read;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use clap::Args;
-use serde_yaml as sy;
+use yaml_edit::{Document, YamlNode};
 
-use crate::error::Result;
+use crate::error::{Result, YageError};
 use crate::{EncryptionStatus, check_encrypted, check_recipients, stdin_or_file};
 
 /// Check the encryption status of a YAML file
@@ -21,7 +23,15 @@ pub fn check(args: &CheckArgs) -> Result<i32> {
         debug!("loading yaml file: {file:?}");
         // don't user read_yaml here, because we don't want it to print a warning if the
         // recipients are not consistent
-        let input_data: sy::Value = sy::from_reader(stdin_or_file(file)?)?;
+        let mut s = String::new();
+        stdin_or_file(file)?.read_to_string(&mut s)?;
+        let doc = Document::from_str(&s).map_err(YageError::Yaml)?;
+        let input_data = doc
+            .as_mapping()
+            .map(YamlNode::Mapping)
+            .or_else(|| doc.as_sequence().map(YamlNode::Sequence))
+            .or_else(|| doc.as_scalar().map(YamlNode::Scalar))
+            .unwrap();
         if !check_recipients(&input_data) {
             error! {"{file:?}: inconsistent recipients"};
             ok = false;

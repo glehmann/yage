@@ -5,13 +5,15 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use clap::Args;
-use serde_yaml as sy;
 use tempfile::tempdir;
+use yaml_edit::YamlNode;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{IOResultExt, Result, YageError};
 use crate::{
-    decrypt_yaml, encrypt_yaml, get_yaml_recipients, load_identities, read_yaml, write_yaml,
+    decrypt_yaml, encrypt_yaml, get_yaml_recipients, load_identities, map_set, read_yaml,
+    read_yaml_file, replace_document_root, replace_yaml_file_document, seq_set, write_yaml,
+    write_yaml_file,
 };
 
 /// Edit an encrypted YAML file
@@ -69,7 +71,10 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
     if identities.is_empty() {
         return Err(YageError::NoKeys);
     }
-    let input_data = read_yaml(&args.file)?;
+    let (yaml_file, doc, input_data) = read_yaml_file(&args.file)?;
+    if !crate::check_recipients(&input_data) {
+        warn!("{}: inconsistent recipients", args.file.to_string_lossy());
+    }
     let recipients = get_yaml_recipients(&input_data)?;
     if recipients.is_empty() {
         return Err(YageError::NoRecipients);
@@ -94,11 +99,13 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
     // makes it appear different every time it is encrypted, so we avoid
     // encrypting it again. This way the data that has not changed isn't
     // changed in its encrypted form.
-    let mut to_encrypt_data = edited_data.clone();
-    apply_unchanged(&previous_data, &edited_data, &input_data, &mut to_encrypt_data)?;
+    let to_encrypt_data = edited_data.clone();
+    apply_unchanged(&previous_data, &edited_data, &input_data, &to_encrypt_data)?;
 
     let output_data = encrypt_yaml(&to_encrypt_data, &recipients)?;
-    write_yaml(&args.file, &output_data)?;
+    replace_document_root(&doc, &output_data);
+    replace_yaml_file_document(&yaml_file, &doc);
+    write_yaml_file(&args.file, &yaml_file)?;
     Ok(0)
 }
 
@@ -106,72 +113,47 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
 /// and edited values are equal, inject the original (encrypted) value from
 /// `original` into `target`.
 fn apply_unchanged(
-    previous: &sy::Value,
-    edited: &sy::Value,
-    original: &sy::Value,
-    target: &mut sy::Value,
+    prev: &YamlNode,
+    edited: &YamlNode,
+    original: &YamlNode,
+    target: &YamlNode,
 ) -> Result<()> {
-    apply_unchanged_rec(previous, edited, original, target)
-}
-
-fn apply_unchanged_rec(
-    previous: &sy::Value,
-    edited: &sy::Value,
-    original: &sy::Value,
-    target: &mut sy::Value,
-) -> Result<()> {
-    if previous == edited {
+    if prev.yaml_eq(edited) {
         return Ok(());
     }
-    if let sy::Value::Mapping(prev_map) = previous
-        && let sy::Value::Mapping(edit_map) = edited
-        && let sy::Value::Mapping(orig_map) = original
-        && let sy::Value::Mapping(target_map) = target
+    if let YamlNode::Mapping(prev_m) = prev
+        && let YamlNode::Mapping(edit_m) = edited
+        && let YamlNode::Mapping(orig_m) = original
+        && let YamlNode::Mapping(target_m) = target
     {
-        return apply_unchanged_mapping(prev_map, edit_map, orig_map, target_map);
-    }
-    if let sy::Value::Sequence(prev_seq) = previous
-        && let sy::Value::Sequence(edit_seq) = edited
-        && let sy::Value::Sequence(orig_seq) = original
-        && let sy::Value::Sequence(target_seq) = target
-    {
-        return apply_unchanged_sequence(prev_seq, edit_seq, orig_seq, target_seq);
-    }
-    Ok(())
-}
-
-fn apply_unchanged_mapping(
-    prev_map: &sy::Mapping,
-    edit_map: &sy::Mapping,
-    orig_map: &sy::Mapping,
-    target_map: &mut sy::Mapping,
-) -> Result<()> {
-    for (key, prev_val) in prev_map {
-        if let Some(edit_val) = edit_map.get(key)
-            && let (Some(orig_val), Some(target_val)) = (orig_map.get(key), target_map.get_mut(key))
-        {
-            if prev_val == edit_val {
-                *target_val = orig_val.clone();
-            } else {
-                apply_unchanged_rec(prev_val, edit_val, orig_val, target_val)?;
+        for key in prev_m.keys() {
+            if let Some(edit_val) = edit_m.get(key.clone())
+                && let Some(orig_val) = orig_m.get(key.clone())
+                && let Some(prev_val) = prev_m.get(key.clone())
+            {
+                if prev_val.yaml_eq(&edit_val) {
+                    map_set(target_m, key, orig_val);
+                } else if let Some(target_val) = target_m.get(key.clone()) {
+                    apply_unchanged(&prev_val, &edit_val, &orig_val, &target_val)?;
+                }
             }
         }
-    }
-    Ok(())
-}
-
-fn apply_unchanged_sequence(
-    prev_seq: &sy::Sequence,
-    edit_seq: &sy::Sequence,
-    orig_seq: &sy::Sequence,
-    target_seq: &mut sy::Sequence,
-) -> Result<()> {
-    let len = prev_seq.len().min(edit_seq.len()).min(target_seq.len()).min(orig_seq.len());
-    for i in 0..len {
-        if prev_seq[i] == edit_seq[i] {
-            target_seq[i] = orig_seq[i].clone();
-        } else {
-            apply_unchanged_rec(&prev_seq[i], &edit_seq[i], &orig_seq[i], &mut target_seq[i])?;
+    } else if let YamlNode::Sequence(prev_s) = prev
+        && let YamlNode::Sequence(edit_s) = edited
+        && let YamlNode::Sequence(orig_s) = original
+        && let YamlNode::Sequence(target_s) = target
+    {
+        let len = prev_s.len().min(edit_s.len()).min(target_s.len()).min(orig_s.len());
+        for i in 0..len {
+            let prev_val = prev_s.get(i).unwrap();
+            let edit_val = edit_s.get(i).unwrap();
+            let orig_val = orig_s.get(i).unwrap();
+            if prev_val.yaml_eq(&edit_val) {
+                seq_set(target_s, i, orig_val);
+            } else {
+                let target_val = target_s.get(i).unwrap();
+                apply_unchanged(&prev_val, &edit_val, &orig_val, &target_val)?;
+            }
         }
     }
     Ok(())

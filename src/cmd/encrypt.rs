@@ -5,7 +5,10 @@ use clap::Args;
 
 use crate::cli::ENV_PATH_SEP;
 use crate::error::{Result, YageError};
-use crate::{encrypt_yaml, get_yaml_recipients, load_recipients, read_yaml, write_yaml};
+use crate::{
+    encrypt_yaml, get_yaml_recipients, load_recipients, read_yaml_file, replace_document_root,
+    replace_yaml_file_document, write_yaml_file,
+};
 
 /// Encrypt the values in a YAML file
 ///
@@ -79,7 +82,10 @@ pub fn encrypt(args: &EncryptArgs) -> Result<i32> {
     }
     let recipients = load_recipients(&args.recipients, &args.recipient_files)?;
     for file in &args.files {
-        let input_data = read_yaml(file)?;
+        let (yaml_file, doc, input_data) = read_yaml_file(file)?;
+        if !crate::check_recipients(&input_data) {
+            warn!("{}: inconsistent recipients", file.to_string_lossy());
+        }
         let yaml_recipients = get_yaml_recipients(&input_data)?;
         let recipients = if recipients.is_empty() {
             &yaml_recipients
@@ -89,7 +95,9 @@ pub fn encrypt(args: &EncryptArgs) -> Result<i32> {
             return Err(YageError::InvalidRecipients);
         };
         let output_data = encrypt_yaml(&input_data, recipients)?;
-        write_yaml(if args.in_place { file } else { &args.output }, &output_data)?;
+        replace_document_root(&doc, &output_data);
+        replace_yaml_file_document(&yaml_file, &doc);
+        write_yaml_file(if args.in_place { file } else { &args.output }, &yaml_file)?;
     }
     Ok(0)
 }

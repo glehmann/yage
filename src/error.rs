@@ -1,8 +1,8 @@
 use std::io;
 use std::{path::PathBuf, result};
 
-use serde_yaml as sy;
 use thiserror::Error;
+use yaml_edit::YamlError;
 
 #[derive(Error, Debug)]
 pub enum YageError {
@@ -66,7 +66,7 @@ pub enum YageError {
     Utf8(#[from] std::string::FromUtf8Error),
 
     #[error("YAML error: {0}")]
-    Yaml(#[from] sy::Error),
+    Yaml(#[from] YamlError),
 }
 
 /// Alias for a `Result` with the error type `AppError`.

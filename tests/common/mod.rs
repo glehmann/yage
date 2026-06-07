@@ -6,7 +6,10 @@ use std::{
     io::Write,
     ops::Deref,
     path::{Path, PathBuf},
+    str::FromStr,
 };
+
+use yaml_edit::{Document, YamlNode};
 
 use assert_fs::fixture::ChildPath;
 use assert_fs::{TempDir, prelude::*};
@@ -165,6 +168,34 @@ empty_array: []
 empty_string: ''
 empty: null
 ";
+
+pub const YAML_CONTENT_WITH_COMMENTS: &str = "# Top-level comment describing the config
+foo: bar  # inline comment for foo
+titi:     # comment for titi section
+  # nested comment inside titi
+  toto: 42
+array:    # comment for array
+  # comment before first item
+  - 1
+  - 2     # comment on item 2
+  - 3
+# comment before empty_map
+empty_map: {}
+empty_array: []
+# comment before empty_string
+empty_string: ''
+empty: null  # null value comment
+# final comment
+";
+
+pub fn parse_yaml(s: &str) -> YamlNode {
+    let doc = Document::from_str(s).unwrap();
+    doc.as_mapping()
+        .map(YamlNode::Mapping)
+        .or_else(|| doc.as_sequence().map(YamlNode::Sequence))
+        .or_else(|| doc.as_scalar().map(YamlNode::Scalar))
+        .unwrap()
+}
 
 pub fn generate_encrypted_file() -> (TempDir, PathBuf, PathBuf, PathBuf, PathBuf) {
     let tmp = temp_dir();

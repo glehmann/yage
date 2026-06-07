@@ -1,11 +1,8 @@
 mod common;
 
+use crate::common::*;
 use assert_fs::prelude::*;
 use predicates::prelude::predicate::str::*;
-use pretty_assertions::assert_eq;
-use serde_yaml as sy;
-
-use crate::common::*;
 
 const YAML_CONTENT_ENCRYPTED_PATTERN: &str = r"foo: yage\[[0-9a-zA-Z/=\-+]+\|r:[a-z0-9,]+\]
 titi:
@@ -28,14 +25,13 @@ fn re_encrypt_to_stdout() {
         .stderr(is_empty())
         .get_output()
         .clone();
-    let data: sy::Value = yage::read_yaml(&yaml_path).unwrap();
-    let encrypted_data: sy::Value = yage::read_yaml(&encrypted_path).unwrap();
+    let data = yage::read_yaml(&yaml_path).unwrap();
+    let encrypted_data = yage::read_yaml(&encrypted_path).unwrap();
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
-    let re_encrypted_data: sy::Value =
-        sy::from_str(&String::from_utf8(output.stdout).unwrap()).unwrap();
+    let re_encrypted_data = parse_yaml(&String::from_utf8(output.stdout).unwrap());
     let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
-    assert_eq!(data, decrypted_data);
-    assert_ne!(encrypted_data, re_encrypted_data);
+    assert!(data.yaml_eq(&decrypted_data));
+    assert!(!encrypted_data.yaml_eq(&re_encrypted_data));
 }
 
 #[test]
@@ -45,13 +41,13 @@ fn re_encrypt_to_file() {
     yage!("re-encrypt", "-K", key_path, "-R", &pub_path, &encrypted_path, "-o", &re_encrypted_path)
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = yage::read_yaml(&yaml_path).unwrap();
-    let encrypted_data: sy::Value = yage::read_yaml(&encrypted_path).unwrap();
+    let data = yage::read_yaml(&yaml_path).unwrap();
+    let encrypted_data = yage::read_yaml(&encrypted_path).unwrap();
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
-    let re_encrypted_data: sy::Value = sy::from_str(&read(&re_encrypted_path)).unwrap();
+    let re_encrypted_data = parse_yaml(&read(&re_encrypted_path));
     let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
-    assert_eq!(data, decrypted_data);
-    assert_ne!(encrypted_data, re_encrypted_data);
+    assert!(data.yaml_eq(&decrypted_data));
+    assert!(!encrypted_data.yaml_eq(&re_encrypted_data));
 }
 
 #[test]
@@ -69,13 +65,13 @@ fn re_encrypt_keep_recipients() {
     )
     .stdout(is_empty())
     .stderr(is_empty());
-    let data: sy::Value = yage::read_yaml(&yaml_path).unwrap();
-    let encrypted_data: sy::Value = yage::read_yaml(&encrypted_path).unwrap();
+    let data = yage::read_yaml(&yaml_path).unwrap();
+    let encrypted_data = yage::read_yaml(&encrypted_path).unwrap();
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
-    let re_encrypted_data: sy::Value = sy::from_str(&read(&re_encrypted_path)).unwrap();
+    let re_encrypted_data = parse_yaml(&read(&re_encrypted_path));
     let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
-    assert_eq!(data, decrypted_data);
-    assert_ne!(encrypted_data, re_encrypted_data);
+    assert!(data.yaml_eq(&decrypted_data));
+    assert!(!encrypted_data.yaml_eq(&re_encrypted_data));
 }
 
 #[test]
@@ -88,13 +84,13 @@ fn re_encrypt_key_stdin() {
         .success()
         .stdout(is_empty())
         .stderr(is_empty());
-    let data: sy::Value = yage::read_yaml(&yaml_path).unwrap();
-    let encrypted_data: sy::Value = yage::read_yaml(&encrypted_path).unwrap();
+    let data = yage::read_yaml(&yaml_path).unwrap();
+    let encrypted_data = yage::read_yaml(&encrypted_path).unwrap();
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
-    let re_encrypted_data: sy::Value = sy::from_str(&read(&re_encrypted_path)).unwrap();
+    let re_encrypted_data = parse_yaml(&read(&re_encrypted_path));
     let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
-    assert_eq!(data, decrypted_data);
-    assert_ne!(encrypted_data, re_encrypted_data);
+    assert!(data.yaml_eq(&decrypted_data));
+    assert!(!encrypted_data.yaml_eq(&re_encrypted_data));
 }
 
 #[test]
@@ -151,11 +147,11 @@ fn re_encrypt_multiple_recipients() {
     .stdout(is_empty())
     .stderr(is_empty());
     let data = yage::read_yaml(&yaml_path).unwrap();
-    let re_encrypted_data: sy::Value = sy::from_str(&read(&re_encrypted_path)).unwrap();
+    let re_encrypted_data = parse_yaml(&read(&re_encrypted_path));
     for key_path in [key_path1, key_path2, key_path3, key_path4, key_path5] {
         let identities = yage::load_identities(&[], &[key_path]).unwrap();
         let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
-        assert_eq!(data, decrypted_data);
+        assert!(data.yaml_eq(&decrypted_data));
     }
     // YAGE_RECIPIENT env is overridden by command line
     let identities = yage::load_identities(&[], &[key_path6]).unwrap();
@@ -187,11 +183,11 @@ fn re_encrypt_recipients_from_env() {
     .stdout(is_empty())
     .stderr(is_empty());
     let data = yage::read_yaml(&yaml_path).unwrap();
-    let re_encrypted_data: sy::Value = sy::from_str(&read(&re_encrypted_path)).unwrap();
+    let re_encrypted_data = parse_yaml(&read(&re_encrypted_path));
     for key_path in [key_path1, key_path2, key_path3, key_path4] {
         let identities = yage::load_identities(&[], &[key_path]).unwrap();
         let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
-        assert_eq!(data, decrypted_data);
+        assert!(data.yaml_eq(&decrypted_data));
     }
 }
 
@@ -215,9 +211,9 @@ fn re_encrypt_from_stdin() {
     .stderr(is_empty());
     let data = yage::read_yaml(&yaml_path).unwrap();
     let identities = yage::load_identities(&[], &[key_path]).unwrap();
-    let re_encrypted_data: sy::Value = sy::from_str(&read(&re_encrypted_path)).unwrap();
+    let re_encrypted_data = parse_yaml(&read(&re_encrypted_path));
     let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
-    assert_eq!(data, decrypted_data);
+    assert!(data.yaml_eq(&decrypted_data));
 }
 
 #[test]
@@ -233,7 +229,7 @@ fn re_encrypt_in_place() {
     for path in [&encrypted_path, other_path.path()] {
         let re_encrypted_data = yage::read_yaml(path).unwrap();
         let decrypted_data = yage::decrypt_yaml(&re_encrypted_data, &identities).unwrap();
-        assert_eq!(data, decrypted_data);
+        assert!(data.yaml_eq(&decrypted_data));
     }
 }
 

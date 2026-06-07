@@ -35,9 +35,12 @@ use std::str::FromStr;
 
 use age::x25519;
 use base64::prelude::*;
-use serde_yaml as sy;
+use flate2::read::DeflateDecoder;
+use flate2::write::DeflateEncoder;
+use rowan::ast::AstNode;
 use strum::{Display, EnumIs, EnumIter, EnumString};
 use substring::Substring;
+use yaml_edit::{Document, Mapping, ScalarValue, Sequence, YamlBuilder, YamlFile, YamlNode};
 
 use crate::error::{IOResultExt, Result, YageError};
 
@@ -86,34 +89,178 @@ pub fn stdin_or_private_file(path: &Path) -> Result<BufReader<Box<dyn Read>>> {
     })
 }
 
-pub fn decrypt_yaml(value: &sy::Value, identities: &[x25519::Identity]) -> Result<sy::Value> {
+fn yaml_str_to_node(s: &str) -> Result<YamlNode> {
+    let doc = Document::from_str(s)?;
+    node_from_document(&doc)
+}
+
+fn node_from_document(doc: &Document) -> Result<YamlNode> {
+    if let Some(mapping) = doc.as_mapping() {
+        Ok(YamlNode::Mapping(mapping))
+    } else if let Some(sequence) = doc.as_sequence() {
+        Ok(YamlNode::Sequence(sequence))
+    } else if let Some(scalar) = doc.as_scalar() {
+        Ok(YamlNode::Scalar(scalar))
+    } else {
+        Err(YageError::InvalidValueEncoding)
+    }
+}
+
+/// Replace the root node in a Document while preserving document-level
+/// children (comments, directives, document markers). The new_root is the
+/// processed YAML tree to insert in place of the old root.
+pub(crate) fn replace_document_root(doc: &Document, new_root: &YamlNode) {
+    use rowan::NodeOrToken;
+    use yaml_edit::SyntaxKind;
+
+    let root_kinds = [
+        SyntaxKind::MAPPING,
+        SyntaxKind::SEQUENCE,
+        SyntaxKind::SCALAR,
+        SyntaxKind::ALIAS,
+        SyntaxKind::TAGGED_NODE,
+    ];
+
+    let new_syntax = match new_root {
+        YamlNode::Mapping(m) => m.syntax().clone(),
+        YamlNode::Sequence(s) => s.syntax().clone(),
+        YamlNode::Scalar(s) => s.syntax().clone(),
+        YamlNode::Alias(a) => a.syntax().clone(),
+        YamlNode::TaggedNode(t) => t.syntax().clone(),
+    };
+
+    for (i, child) in doc.syntax().children_with_tokens().enumerate() {
+        if let NodeOrToken::Node(n) = &child {
+            if root_kinds.contains(&n.kind()) {
+                doc.syntax().splice_children(i..i + 1, vec![new_syntax.into()]);
+                return;
+            }
+        }
+    }
+}
+
+/// Read a YAML file, preserving ROOT-level comments via YamlFile.
+/// Returns the YamlFile, its first Document, and the root YamlNode.
+pub(crate) fn read_yaml_file(path: &Path) -> Result<(YamlFile, Document, YamlNode)> {
+    let mut s = String::new();
+    stdin_or_file(path)?.read_to_string(&mut s)?;
+    let yaml_file = YamlFile::from_str(&s)?;
+    let doc = yaml_file.document().unwrap_or_default();
+    let value = node_from_document(&doc)?;
+    Ok((yaml_file, doc, value))
+}
+
+/// Replace the DOCUMENT node inside a YamlFile's ROOT with an updated
+/// Document's syntax node. This preserves ROOT-level comments (children
+/// of the ROOT node that are siblings of the DOCUMENT, such as top-level
+/// comments before the first YAML key).
+pub(crate) fn replace_yaml_file_document(yaml_file: &YamlFile, doc: &Document) {
+    use rowan::NodeOrToken;
+    use yaml_edit::SyntaxKind;
+
+    let new_syntax = doc.syntax().clone();
+    for (i, child) in yaml_file.syntax().children_with_tokens().enumerate() {
+        if let NodeOrToken::Node(n) = &child {
+            if n.kind() == SyntaxKind::DOCUMENT {
+                yaml_file.syntax().splice_children(i..i + 1, vec![new_syntax.into()]);
+                return;
+            }
+        }
+    }
+}
+
+/// Write a YamlFile to the output path. Preserves ROOT-level comments.
+pub(crate) fn write_yaml_file(path: &Path, yaml_file: &YamlFile) -> Result<()> {
+    let yaml_text = yaml_file.to_string();
+    let mut output = stdout_or_file(path)?;
+    output.write_all(yaml_text.as_bytes())?;
+    Ok(())
+}
+
+/// Create a new independent mutable cursor over the same green tree.
+/// yaml-edit's Clone shares cursor state (parent/index/offset), so
+/// mutating one clone affects all. This gives you a separate cursor
+/// that can be mutated independently. The green tree is ref-counted
+/// so this is O(1) — no data copying.
+fn new_mut_cursor(value: &YamlNode) -> YamlNode {
     match value {
-        sy::Value::Mapping(mapping) => {
-            let mut output = sy::Mapping::new();
-            for (key, value) in mapping {
-                let key = key.clone();
-                let value = decrypt_yaml(value, identities)?;
-                output.insert(key, value);
-            }
-            Ok(sy::Value::Mapping(output))
+        YamlNode::Mapping(m) => {
+            let green = m.syntax().green().into_owned();
+            YamlNode::from_syntax(rowan::SyntaxNode::<yaml_edit::Lang>::new_root_mut(green))
+                .unwrap()
         }
-        sy::Value::Sequence(sequence) => {
-            let mut output = Vec::new();
-            for value in sequence {
-                let value = decrypt_yaml(value, identities)?;
-                output.push(value);
-            }
-            Ok(sy::Value::Sequence(output))
+        YamlNode::Sequence(s) => {
+            let green = s.syntax().green().into_owned();
+            YamlNode::from_syntax(rowan::SyntaxNode::<yaml_edit::Lang>::new_root_mut(green))
+                .unwrap()
         }
-        sy::Value::String(encrypted) => {
-            let decrypted = decrypt_value(encrypted, identities)?;
-            Ok(decrypted)
+        YamlNode::Scalar(s) => {
+            let green = s.syntax().green().into_owned();
+            YamlNode::from_syntax(rowan::SyntaxNode::<yaml_edit::Lang>::new_root_mut(green))
+                .unwrap()
+        }
+        other => other.clone(),
+    }
+}
+
+/// Helper for Sequence::set — passes concrete types to set() instead of
+/// AsYaml for YamlNode (which drops the SCALAR/MAPPING/SEQUENCE wrapper).
+pub(crate) fn seq_set(seq: &Sequence, i: usize, val: YamlNode) {
+    let _ = match val {
+        YamlNode::Scalar(s) => seq.set(i, s),
+        YamlNode::Mapping(m) => seq.set(i, m),
+        YamlNode::Sequence(s) => seq.set(i, s),
+        other => seq.set(i, other),
+    };
+}
+
+/// Helper for Mapping::set — same fix as seq_set.
+pub(crate) fn map_set(map: &Mapping, key: YamlNode, val: YamlNode) {
+    match val {
+        YamlNode::Scalar(s) => map.set(key, s),
+        YamlNode::Mapping(m) => map.set(key, m),
+        YamlNode::Sequence(s) => map.set(key, s),
+        other => map.set(key, other),
+    }
+}
+
+pub fn decrypt_yaml(value: &YamlNode, identities: &[x25519::Identity]) -> Result<YamlNode> {
+    match value {
+        YamlNode::Mapping(mapping) => {
+            let output = new_mut_cursor(value);
+            let out_m = output.as_mapping().unwrap();
+            for (key, val) in mapping {
+                let decrypted = decrypt_yaml(&val, identities)?;
+                if !val.yaml_eq(&decrypted) {
+                    map_set(out_m, key, decrypted);
+                }
+            }
+            Ok(output)
+        }
+        YamlNode::Sequence(sequence) => {
+            let output = new_mut_cursor(value);
+            let out_s = output.as_sequence().unwrap();
+            for (i, val) in sequence.into_iter().enumerate() {
+                let decrypted = decrypt_yaml(&val, identities)?;
+                if !val.yaml_eq(&decrypted) {
+                    seq_set(out_s, i, decrypted);
+                }
+            }
+            Ok(output)
+        }
+        YamlNode::Scalar(scalar) => {
+            let s = scalar.as_string();
+            if YageEncodedValue::from_str(&s).is_ok() {
+                decrypt_value(&s, identities)
+            } else {
+                Ok(YamlNode::Scalar(scalar.clone()))
+            }
         }
         _ => Ok(value.clone()),
     }
 }
 
-pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Value> {
+pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<YamlNode> {
     match YageEncodedValue::from_str(s) {
         Ok(yev) => {
             // raw value -> decoded value -> decrypted value -> decompressed value -> deserialized value
@@ -124,11 +271,12 @@ pub fn decrypt_value(s: &str, identities: &[x25519::Identity]) -> Result<sy::Val
             }
             let decryptor =
                 decryptor.decrypt(identities.iter().map(|i| i as &dyn age::Identity))?;
-            let decompressor = flate2::read::DeflateDecoder::new(decryptor);
-            let deserialized: sy::Value = sy::from_reader(decompressor)?;
-            Ok(deserialized)
+            let mut decompressor = DeflateDecoder::new(decryptor);
+            let mut yaml_text = String::new();
+            decompressor.read_to_string(&mut yaml_text)?;
+            yaml_str_to_node(&yaml_text)
         }
-        Err(_) => Ok(sy::Value::String(s.to_owned())),
+        Err(_) => yaml_str_to_node(s),
     }
 }
 
@@ -157,44 +305,52 @@ pub fn load_identities(keys: &[String], key_files: &[PathBuf]) -> Result<Vec<x25
     Ok(identities)
 }
 
-pub fn encrypt_yaml(value: &sy::Value, recipients: &[x25519::Recipient]) -> Result<sy::Value> {
+pub fn encrypt_yaml(value: &YamlNode, recipients: &[x25519::Recipient]) -> Result<YamlNode> {
     match value {
-        sy::Value::Mapping(mapping) => {
-            let mut output = sy::Mapping::new();
-            for (key, value) in mapping {
-                let key = key.clone();
-                let value = encrypt_yaml(value, recipients)?;
-                output.insert(key, value);
+        YamlNode::Mapping(mapping) => {
+            let output = new_mut_cursor(value);
+            let out_m = output.as_mapping().unwrap();
+            for (key, val) in mapping {
+                let encrypted = encrypt_yaml(&val, recipients)?;
+                if !val.yaml_eq(&encrypted) {
+                    map_set(out_m, key, encrypted);
+                }
             }
-            Ok(sy::Value::Mapping(output))
+            Ok(output)
         }
-        sy::Value::Sequence(sequence) => {
-            let mut output = Vec::new();
-            for value in sequence {
-                let value = encrypt_yaml(value, recipients)?;
-                output.push(value);
+        YamlNode::Sequence(sequence) => {
+            let output = new_mut_cursor(value);
+            let out_s = output.as_sequence().unwrap();
+            for (i, val) in sequence.into_iter().enumerate() {
+                let encrypted = encrypt_yaml(&val, recipients)?;
+                if !val.yaml_eq(&encrypted) {
+                    seq_set(out_s, i, encrypted);
+                }
             }
-            Ok(sy::Value::Sequence(output))
+            Ok(output)
         }
-        sy::Value::String(s) => {
-            let output = if YageEncodedValue::from_str(s).is_ok() {
-                // keep the already encrypted value
-                s.to_owned()
+        YamlNode::Scalar(scalar) => {
+            let s = scalar.as_string();
+            if YageEncodedValue::from_str(&s).is_ok()
+                || scalar.is_null()
+                || scalar.as_bool().is_some()
+            {
+                Ok(YamlNode::Scalar(scalar.clone()))
             } else {
-                encrypt_value(value, recipients)?
-            };
-            Ok(sy::Value::String(output))
-        }
-        sy::Value::Number(_) => {
-            let output = encrypt_value(value, recipients)?;
-            Ok(sy::Value::String(output))
+                let output = encrypt_value(value, recipients)?;
+                let yaml_file = YamlBuilder::scalar(ScalarValue::plain(output.as_str())).build();
+                let doc = yaml_file.document().ok_or(YageError::InvalidValueEncoding)?;
+                let scalar = doc.as_scalar().ok_or(YageError::InvalidValueEncoding)?.clone();
+                Ok(YamlNode::Scalar(scalar))
+            }
         }
         _ => Ok(value.clone()),
     }
 }
 
-pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Result<String> {
+pub fn encrypt_value(value: &YamlNode, recipients: &[x25519::Recipient]) -> Result<String> {
     // yaml value -> serialized value -> compressed value -> encrypted value -> encoded value
+    let yaml_text = format!("{}", value);
     let mut encrypted = vec![];
     let mut encryptor = match age::Encryptor::with_recipients(
         recipients.iter().map(|r| r as &dyn age::Recipient),
@@ -203,9 +359,9 @@ pub fn encrypt_value(value: &sy::Value, recipients: &[x25519::Recipient]) -> Res
         r => r?,
     }
     .wrap_output(&mut encrypted)?;
-    let compressor =
-        flate2::write::DeflateEncoder::new(&mut encryptor, flate2::Compression::new(6));
-    sy::to_writer(compressor, value)?;
+    let mut compressor = DeflateEncoder::new(&mut encryptor, flate2::Compression::new(6));
+    compressor.write_all(yaml_text.as_bytes())?;
+    compressor.finish()?;
     encryptor.finish()?;
     // prepare the recipients list (sorted and deduplicated)
     let mut recipients: Vec<_> = recipients.iter().map(|r| r.to_string()).collect();
@@ -253,26 +409,27 @@ pub enum EncryptionStatus {
     NoValue,
 }
 
-pub fn check_encrypted(value: &sy::Value) -> EncryptionStatus {
+pub fn check_encrypted(value: &YamlNode) -> EncryptionStatus {
     match value {
-        sy::Value::Mapping(mapping) => check_encrypted_iter(mapping.iter().map(|(_, v)| v)),
-        sy::Value::Sequence(sequence) => check_encrypted_iter(sequence.iter()),
-        sy::Value::String(s) => {
-            if YageEncodedValue::from_str(s).is_ok() {
+        YamlNode::Mapping(mapping) => check_encrypted_iter(mapping.iter().map(|(_, v)| v)),
+        YamlNode::Sequence(sequence) => check_encrypted_iter(sequence.values()),
+        YamlNode::Scalar(scalar) => {
+            if YageEncodedValue::from_str(&scalar.as_string()).is_ok() {
                 EncryptionStatus::Encrypted
+            } else if scalar.is_null() || scalar.as_bool().is_some() {
+                EncryptionStatus::NoValue
             } else {
                 EncryptionStatus::NotEncrypted
             }
         }
-        sy::Value::Null => EncryptionStatus::NoValue,
         _ => EncryptionStatus::NotEncrypted,
     }
 }
 
-fn check_encrypted_iter<'a>(iter: impl Iterator<Item = &'a sy::Value>) -> EncryptionStatus {
+fn check_encrypted_iter(iter: impl Iterator<Item = YamlNode>) -> EncryptionStatus {
     let mut status = EncryptionStatus::NoValue;
     for value in iter {
-        match check_encrypted(value) {
+        match check_encrypted(&value) {
             EncryptionStatus::Encrypted => {
                 status = match status {
                     EncryptionStatus::Encrypted => EncryptionStatus::Encrypted,
@@ -298,15 +455,15 @@ fn check_encrypted_iter<'a>(iter: impl Iterator<Item = &'a sy::Value>) -> Encryp
     status
 }
 
-pub fn flatten_yage_encrypted_values(value: &sy::Value) -> Vec<YageEncodedValue> {
+pub fn flatten_yage_encrypted_values(value: &YamlNode) -> Vec<YageEncodedValue> {
     match value {
-        sy::Value::Mapping(mapping) => {
-            mapping.iter().flat_map(|(_, v)| flatten_yage_encrypted_values(v)).collect()
+        YamlNode::Mapping(mapping) => {
+            mapping.iter().flat_map(|(_, v)| flatten_yage_encrypted_values(&v)).collect()
         }
-        sy::Value::Sequence(sequence) => {
-            sequence.iter().flat_map(flatten_yage_encrypted_values).collect()
+        YamlNode::Sequence(sequence) => {
+            sequence.values().flat_map(|v| flatten_yage_encrypted_values(&v)).collect()
         }
-        sy::Value::String(s) => match YageEncodedValue::from_str(s) {
+        YamlNode::Scalar(scalar) => match YageEncodedValue::from_str(&scalar.as_string()) {
             Ok(yev) => vec![yev],
             Err(_) => vec![],
         },
@@ -314,7 +471,7 @@ pub fn flatten_yage_encrypted_values(value: &sy::Value) -> Vec<YageEncodedValue>
     }
 }
 
-pub fn check_recipients(value: &sy::Value) -> bool {
+pub fn check_recipients(value: &YamlNode) -> bool {
     flatten_yage_encrypted_values(value)
         .iter()
         .filter(|v| !v.recipients.is_empty())
@@ -360,7 +517,7 @@ impl std::fmt::Display for YageEncodedValue {
     }
 }
 
-pub fn get_yaml_recipients(value: &sy::Value) -> Result<Vec<x25519::Recipient>> {
+pub fn get_yaml_recipients(value: &YamlNode) -> Result<Vec<x25519::Recipient>> {
     let yevs = flatten_yage_encrypted_values(value);
     let mut recipients: Vec<_> = yevs.iter().flat_map(|yev| &yev.recipients).collect();
     recipients.sort();
@@ -376,19 +533,21 @@ pub fn get_yaml_recipients(value: &sy::Value) -> Result<Vec<x25519::Recipient>> 
     Ok(output)
 }
 
-pub fn read_yaml(path: &Path) -> Result<sy::Value> {
+pub fn read_yaml(path: &Path) -> Result<YamlNode> {
     debug!("loading yaml file: {path:?}");
-    let input = stdin_or_file(path)?;
-    let value: sy::Value = sy::from_reader(input)?;
+    let mut s = String::new();
+    stdin_or_file(path)?.read_to_string(&mut s)?;
+    let value = yaml_str_to_node(&s)?;
     if !check_recipients(&value) {
         warn!("{}: inconsistent recipients", path.to_string_lossy());
     }
     Ok(value)
 }
 
-pub fn write_yaml(path: &Path, value: &sy::Value) -> Result<()> {
+pub fn write_yaml(path: &Path, value: &YamlNode) -> Result<()> {
     debug!("writing yaml file: {path:?}");
-    let output = stdout_or_file(path)?;
-    sy::to_writer(output, value)?;
+    let yaml_text = format!("{}", value);
+    let mut output = stdout_or_file(path)?;
+    output.write_all(yaml_text.as_bytes())?;
     Ok(())
 }

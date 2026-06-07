@@ -1,0 +1,17 @@
+# Top-level comment describing the config
+foo: bar  # inline comment for foo
+titi:     # comment for titi section
+  # nested comment inside titi
+  toto: 42
+array:    # comment for array
+  # comment before first item
+  - 1
+  - 2     # comment on item 2
+  - 3
+# comment before empty_map
+empty_map: {}
+empty_array: []
+# comment before empty_string
+empty_string: ''
+empty: null  # null value comment
+# final comment
