@@ -265,6 +265,74 @@ fn encrypt_partially_encrypted_other_recipient() {
         ));
 }
 
+const DEEPLY_NESTED_YAML: &str = r#"deeply:
+  nested:
+    level1:
+      level2:
+        value: secret
+"#;
+
+#[test]
+fn encrypt_preserves_deep_nesting() {
+    let tmp = temp_dir();
+    let (_, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, DEEPLY_NESTED_YAML);
+    let encrypted_path = tmp.child("file.enc.yaml");
+
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let encrypted = read(&encrypted_path);
+
+    assert!(
+        encrypted.contains("  nested:"),
+        "nested should be at indent 2 after encrypt\nGot:\n{encrypted}"
+    );
+    assert!(
+        encrypted.contains("    level1:"),
+        "level1 should be at indent 4 after encrypt\nGot:\n{encrypted}"
+    );
+    assert!(
+        encrypted.contains("      level2:"),
+        "level2 should be at indent 6 after encrypt\nGot:\n{encrypted}"
+    );
+}
+
+#[test]
+fn encrypt_decrypt_deep_nesting_roundtrip() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, DEEPLY_NESTED_YAML);
+    let encrypted_path = tmp.child("file.enc.yaml");
+
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let decrypted_path = tmp.child("file.dec.yaml");
+    yage!("decrypt", "-K", &key_path, &encrypted_path, "-o", &decrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let decrypted = read(&decrypted_path);
+
+    assert!(
+        decrypted.contains("  nested:"),
+        "nested should be at indent 2 after decrypt\nGot:\n{decrypted}"
+    );
+    assert!(
+        decrypted.contains("    level1:"),
+        "level1 should be at indent 4 after decrypt\nGot:\n{decrypted}"
+    );
+    assert!(
+        decrypted.contains("      level2:"),
+        "level2 should be at indent 6 after decrypt\nGot:\n{decrypted}"
+    );
+}
+
 #[test]
 fn encrypt_preserves_top_level_comments() {
     let tmp = temp_dir();

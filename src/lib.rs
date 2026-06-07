@@ -203,24 +203,128 @@ fn new_mut_cursor(value: &YamlNode) -> YamlNode {
     }
 }
 
-/// Helper for Sequence::set — passes concrete types to set() instead of
-/// AsYaml for YamlNode (which drops the SCALAR/MAPPING/SEQUENCE wrapper).
+/// Replace the value of a SEQUENCE_ENTRY at index `i` with `val`,
+/// preserving the entry's formatting tokens (DASH, WHITESPACE)
+/// and the value's internal indentation.
 pub(crate) fn seq_set(seq: &Sequence, i: usize, val: YamlNode) {
-    let _ = match val {
-        YamlNode::Scalar(s) => seq.set(i, s),
-        YamlNode::Mapping(m) => seq.set(i, m),
-        YamlNode::Sequence(s) => seq.set(i, s),
-        other => seq.set(i, other),
-    };
+    use yaml_edit::SyntaxKind;
+
+    let new_syntax = value_syntax_node(&val);
+
+    let children: Vec<_> = seq.syntax().children_with_tokens().collect();
+    let mut item_count = 0;
+
+    for (_entry_i, child) in children.iter().enumerate() {
+        let Some(node) = child.as_node() else { continue };
+        if node.kind() != SyntaxKind::SEQUENCE_ENTRY {
+            continue;
+        }
+        if item_count != i {
+            item_count += 1;
+            continue;
+        }
+
+        // Found the SEQUENCE_ENTRY — find and replace its content child
+        let entry_children: Vec<_> = node.children_with_tokens().collect();
+        for (j, ec) in entry_children.iter().enumerate() {
+            if let Some(content) = ec.as_node() {
+                if matches!(
+                    content.kind(),
+                    SyntaxKind::SCALAR
+                        | SyntaxKind::MAPPING
+                        | SyntaxKind::SEQUENCE
+                        | SyntaxKind::ALIAS
+                        | SyntaxKind::TAGGED_NODE
+                ) {
+                    node.splice_children(j..j + 1, vec![new_syntax.clone().into()]);
+                    return;
+                }
+            }
+        }
+
+        // Fallback: content node not found — YamlNode::build_content uses
+        // copy_node_content which preserves indentation
+        let _ = seq.set(i, val);
+        return;
+    }
 }
 
-/// Helper for Mapping::set — same fix as seq_set.
+/// Replace the value for `key` in `map` with `val`,
+/// preserving the VALUE wrapper's formatting tokens
+/// and the value's internal indentation.
 pub(crate) fn map_set(map: &Mapping, key: YamlNode, val: YamlNode) {
+    use yaml_edit::SyntaxKind;
+
+    let new_syntax = value_syntax_node(&val);
+
+    for child in map.syntax().children_with_tokens() {
+        let Some(node) = child.as_node() else { continue };
+        if node.kind() != SyntaxKind::MAPPING_ENTRY {
+            continue;
+        }
+
+        // Find KEY child and check if it matches
+        let mut key_matches = false;
+        for entry_child in node.children_with_tokens() {
+            let Some(key_node) = entry_child.as_node() else { continue };
+            if key_node.kind() != SyntaxKind::KEY {
+                continue;
+            }
+            // KEY has one child — the actual value node
+            if let Some(content) = key_node.children().next() {
+                if let Some(ek_yaml) = YamlNode::from_syntax(content) {
+                    if ek_yaml.yaml_eq(&key) {
+                        key_matches = true;
+                    }
+                }
+            }
+            break; // KEY found (at most one per entry)
+        }
+        if !key_matches {
+            continue;
+        }
+
+        // Found the matching MAPPING_ENTRY — find the VALUE child
+        for entry_child in node.children_with_tokens() {
+            let Some(value_node) = entry_child.as_node() else { continue };
+            if value_node.kind() != SyntaxKind::VALUE {
+                continue;
+            }
+
+            // Within the VALUE, find the content child and replace it
+            let value_children: Vec<_> = value_node.children_with_tokens().collect();
+            for (j, vc) in value_children.iter().enumerate() {
+                let Some(content) = vc.as_node() else { continue };
+                if matches!(
+                    content.kind(),
+                    SyntaxKind::SCALAR
+                        | SyntaxKind::MAPPING
+                        | SyntaxKind::SEQUENCE
+                        | SyntaxKind::ALIAS
+                        | SyntaxKind::TAGGED_NODE
+                ) {
+                    value_node.splice_children(j..j + 1, vec![new_syntax.clone().into()]);
+                    return;
+                }
+            }
+        }
+
+        break;
+    }
+
+    // Fallback: entry not found — YamlNode::build_content uses
+    // copy_node_content which preserves indentation
+    map.set(key, val);
+}
+
+/// Extract the raw syntax node for the value part of a YamlNode.
+fn value_syntax_node(val: &YamlNode) -> rowan::SyntaxNode<yaml_edit::Lang> {
     match val {
-        YamlNode::Scalar(s) => map.set(key, s),
-        YamlNode::Mapping(m) => map.set(key, m),
-        YamlNode::Sequence(s) => map.set(key, s),
-        other => map.set(key, other),
+        YamlNode::Scalar(s) => s.syntax().clone(),
+        YamlNode::Mapping(m) => m.syntax().clone(),
+        YamlNode::Sequence(s) => s.syntax().clone(),
+        YamlNode::Alias(a) => a.syntax().clone(),
+        YamlNode::TaggedNode(t) => t.syntax().clone(),
     }
 }
 
