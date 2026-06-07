@@ -130,11 +130,11 @@ pub(crate) fn replace_document_root(doc: &Document, new_root: &YamlNode) {
     };
 
     for (i, child) in doc.syntax().children_with_tokens().enumerate() {
-        if let NodeOrToken::Node(n) = &child {
-            if root_kinds.contains(&n.kind()) {
-                doc.syntax().splice_children(i..i + 1, vec![new_syntax.into()]);
-                return;
-            }
+        if let NodeOrToken::Node(n) = &child
+            && root_kinds.contains(&n.kind())
+        {
+            doc.syntax().splice_children(i..i + 1, vec![new_syntax.into()]);
+            return;
         }
     }
 }
@@ -160,11 +160,11 @@ pub(crate) fn replace_yaml_file_document(yaml_file: &YamlFile, doc: &Document) {
 
     let new_syntax = doc.syntax().clone();
     for (i, child) in yaml_file.syntax().children_with_tokens().enumerate() {
-        if let NodeOrToken::Node(n) = &child {
-            if n.kind() == SyntaxKind::DOCUMENT {
-                yaml_file.syntax().splice_children(i..i + 1, vec![new_syntax.into()]);
-                return;
-            }
+        if let NodeOrToken::Node(n) = &child
+            && n.kind() == SyntaxKind::DOCUMENT
+        {
+            yaml_file.syntax().splice_children(i..i + 1, vec![new_syntax.into()]);
+            return;
         }
     }
 }
@@ -214,7 +214,7 @@ pub(crate) fn seq_set(seq: &Sequence, i: usize, val: YamlNode) {
     let children: Vec<_> = seq.syntax().children_with_tokens().collect();
     let mut item_count = 0;
 
-    for (_entry_i, child) in children.iter().enumerate() {
+    for child in children.iter() {
         let Some(node) = child.as_node() else { continue };
         if node.kind() != SyntaxKind::SEQUENCE_ENTRY {
             continue;
@@ -227,18 +227,18 @@ pub(crate) fn seq_set(seq: &Sequence, i: usize, val: YamlNode) {
         // Found the SEQUENCE_ENTRY — find and replace its content child
         let entry_children: Vec<_> = node.children_with_tokens().collect();
         for (j, ec) in entry_children.iter().enumerate() {
-            if let Some(content) = ec.as_node() {
-                if matches!(
+            if let Some(content) = ec.as_node()
+                && matches!(
                     content.kind(),
                     SyntaxKind::SCALAR
                         | SyntaxKind::MAPPING
                         | SyntaxKind::SEQUENCE
                         | SyntaxKind::ALIAS
                         | SyntaxKind::TAGGED_NODE
-                ) {
-                    node.splice_children(j..j + 1, vec![new_syntax.clone().into()]);
-                    return;
-                }
+                )
+            {
+                node.splice_children(j..j + 1, vec![new_syntax.clone().into()]);
+                return;
             }
         }
 
@@ -271,12 +271,11 @@ pub(crate) fn map_set(map: &Mapping, key: YamlNode, val: YamlNode) {
                 continue;
             }
             // KEY has one child — the actual value node
-            if let Some(content) = key_node.children().next() {
-                if let Some(ek_yaml) = YamlNode::from_syntax(content) {
-                    if ek_yaml.yaml_eq(&key) {
-                        key_matches = true;
-                    }
-                }
+            if let Some(content) = key_node.children().next()
+                && let Some(ek_yaml) = YamlNode::from_syntax(content)
+                && ek_yaml.yaml_eq(&key)
+            {
+                key_matches = true;
             }
             break; // KEY found (at most one per entry)
         }
