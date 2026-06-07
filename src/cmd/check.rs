@@ -12,10 +12,6 @@ use crate::{EncryptionStatus, check_encrypted, check_recipients, stdin_or_file};
 #[derive(Args, Debug)]
 #[command(alias = "status")]
 pub struct CheckArgs {
-    /// Do not scan YAML comments for potential secrets
-    #[clap(long, default_value_t = false)]
-    pub no_comment_scan: bool,
-
     /// The YAML files to check
     #[arg()]
     pub files: Vec<PathBuf>,
@@ -36,9 +32,7 @@ pub fn check(args: &CheckArgs) -> Result<i32> {
             .or_else(|| doc.as_sequence().map(YamlNode::Sequence))
             .or_else(|| doc.as_scalar().map(YamlNode::Scalar))
             .unwrap();
-        if !args.no_comment_scan
-            && let Ok(yaml_file) = YamlFile::from_str(&s)
-        {
+        if let Ok(yaml_file) = YamlFile::from_str(&s) {
             let leaks = crate::check_comments_for_secrets(&yaml_file);
             for leak in &leaks {
                 warn!(

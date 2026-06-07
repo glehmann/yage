@@ -169,6 +169,14 @@ empty_string: ''
 empty: null
 ";
 
+pub const YAML_CONTENT_WITH_HIGH_ENTROPY_COMMENT: &str = "\
+# Top-level comment describing the config
+# this comment contains a secret key A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6
+foo: bar
+titi:
+  toto: 42
+";
+
 pub const YAML_CONTENT_WITH_COMMENTS: &str = "# Top-level comment describing the config
 foo: bar  # inline comment for foo
 titi:     # comment for titi section

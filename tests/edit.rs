@@ -1,5 +1,6 @@
 mod common;
 
+use assert_fs::prelude::*;
 use common::*;
 use predicates::str::{contains, is_empty};
 use pretty_assertions::{assert_eq, assert_ne};
@@ -10,6 +11,24 @@ use yage::{EncryptionStatus, check_encrypted};
 const EDITOR: &str = "cmd /c 'echo hop: hop >> %0'";
 #[cfg(not(windows))]
 const EDITOR: &str = "bash -c 'echo hop: hop >> $0'";
+
+#[cfg(not(windows))]
+#[test]
+fn edit_emits_warning_on_high_entropy_comment() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT_WITH_HIGH_ENTROPY_COMMENT);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path, "-qq")
+        .stdout(is_empty())
+        .stderr(is_empty());
+    yage_cmd!("edit", "-K", &key_path, "--editor", EDITOR, &encrypted_path, "-q")
+        .assert()
+        .success()
+        .stdout(is_empty())
+        .stderr(contains("high-entropy token detected"));
+}
 
 #[cfg(not(windows))]
 #[test]

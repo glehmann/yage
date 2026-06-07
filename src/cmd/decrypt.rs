@@ -71,6 +71,16 @@ pub fn decrypt(args: &DecryptArgs) -> Result<i32> {
     }
     for file in &args.files {
         let (yaml_file, doc, input_data) = read_yaml_file(file)?;
+        let leaks = crate::check_comments_for_secrets(&yaml_file);
+        for leak in &leaks {
+            warn!(
+                "{}:{}:{}: high-entropy token detected (z-score: {})",
+                file.to_string_lossy(),
+                leak.line,
+                leak.col,
+                leak.z_score,
+            );
+        }
         if !crate::check_recipients(&input_data) {
             warn!("{}: inconsistent recipients", file.to_string_lossy());
         }

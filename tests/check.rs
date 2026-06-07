@@ -7,6 +7,18 @@ use predicates::prelude::predicate::str::*;
 use std::{fs::OpenOptions, io::Write};
 
 #[test]
+fn check_emits_warning_on_high_entropy_comment() {
+    let tmp = temp_dir();
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT_WITH_HIGH_ENTROPY_COMMENT);
+    yage_cmd!("check", &yaml_path, "-q")
+        .assert()
+        .failure()
+        .stdout(is_empty())
+        .stderr(contains("high-entropy token detected"));
+}
+
+#[test]
 fn check_clear() {
     let tmp = temp_dir();
     let yaml_path = tmp.child("file.yaml");

@@ -400,6 +400,30 @@ fn encrypt_and_decrypt_preserves_top_level_comments() {
 }
 
 #[test]
+fn encrypt_emits_warning_on_high_entropy_comment() {
+    let tmp = temp_dir();
+    let (_, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT_WITH_HIGH_ENTROPY_COMMENT);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path, "-q")
+        .stdout(is_empty())
+        .stderr(contains("high-entropy token detected"));
+}
+
+#[test]
+fn encrypt_suppresses_comment_warning_with_quiet() {
+    let tmp = temp_dir();
+    let (_, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT_WITH_HIGH_ENTROPY_COMMENT);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path, "-qq")
+        .stdout(is_empty())
+        .stderr(is_empty());
+}
+
+#[test]
 fn encrypt_decrypt_scalar_string_roundtrip() {
     let tmp = temp_dir();
     let (key_path, pub_path) = create_key(&tmp);

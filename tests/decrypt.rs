@@ -6,6 +6,22 @@ use predicates::str::{contains, is_empty};
 use pretty_assertions::assert_eq;
 
 #[test]
+fn decrypt_emits_warning_on_high_entropy_comment() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT_WITH_HIGH_ENTROPY_COMMENT);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path, "-qq")
+        .stdout(is_empty())
+        .stderr(is_empty());
+    let decrypted_path = tmp.child("file.dec.yaml");
+    yage!("decrypt", "-K", &key_path, &encrypted_path, "-o", &decrypted_path, "-q")
+        .stdout(is_empty())
+        .stderr(contains("high-entropy token detected"));
+}
+
+#[test]
 fn decrypt_to_stdout() {
     let (_tmp, key_path, _, yaml_path, encrypted_path) = generate_encrypted_file();
     let output = yage!("decrypt", "--key-file", &key_path, &encrypted_path)

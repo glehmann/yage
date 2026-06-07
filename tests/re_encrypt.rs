@@ -18,6 +18,32 @@ empty: null
 ";
 
 #[test]
+fn re_encrypt_emits_warning_on_high_entropy_comment() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+    let yaml_path = tmp.child("file.yaml");
+    write(&yaml_path, YAML_CONTENT_WITH_HIGH_ENTROPY_COMMENT);
+    let encrypted_path = tmp.child("file.enc.yaml");
+    yage!("encrypt", "-R", &pub_path, &yaml_path, "-o", &encrypted_path, "-qq")
+        .stdout(is_empty())
+        .stderr(is_empty());
+    let re_encrypted_path = tmp.child("file.re-enc.yaml");
+    yage!(
+        "re-encrypt",
+        "-K",
+        &key_path,
+        "-R",
+        &pub_path,
+        &encrypted_path,
+        "-o",
+        &re_encrypted_path,
+        "-q"
+    )
+    .stdout(is_empty())
+    .stderr(contains("high-entropy token detected"));
+}
+
+#[test]
 fn re_encrypt_to_stdout() {
     let (_tmp, key_path, pub_path, yaml_path, encrypted_path) = generate_encrypted_file();
     let output = yage!("re-encrypt", "-K", key_path, "-R", &pub_path, &encrypted_path)
