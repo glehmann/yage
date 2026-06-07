@@ -65,6 +65,9 @@ pub enum YageError {
     #[error(transparent)]
     Utf8(#[from] std::string::FromUtf8Error),
 
+    #[error("potential secret leaked in YAML comment — comments are not encrypted!")]
+    SecretInComment,
+
     #[error("YAML error: {0}")]
     Yaml(#[from] YamlError),
 }

@@ -58,6 +58,10 @@ pub struct EditArgs {
     )]
     pub key_files: Vec<PathBuf>,
 
+    /// Do not scan YAML comments for potential secrets
+    #[clap(long, default_value_t = false)]
+    pub no_comment_scan: bool,
+
     /// The encrypted YAML file to edit
     #[arg()]
     pub file: PathBuf,
@@ -72,6 +76,21 @@ pub fn edit(args: &EditArgs) -> Result<i32> {
         return Err(YageError::NoKeys);
     }
     let (yaml_file, doc, input_data) = read_yaml_file(&args.file)?;
+    if !args.no_comment_scan {
+        let leaks = crate::check_comments_for_secrets(&yaml_file);
+        if !leaks.is_empty() {
+            for leak in &leaks {
+                error!(
+                    "{}:{}:{}: high-entropy token detected (z-score: {})",
+                    args.file.to_string_lossy(),
+                    leak.line,
+                    leak.col,
+                    leak.z_score,
+                );
+            }
+            return Err(crate::error::YageError::SecretInComment);
+        }
+    }
     if !crate::check_recipients(&input_data) {
         warn!("{}: inconsistent recipients", args.file.to_string_lossy());
     }

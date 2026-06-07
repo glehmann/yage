@@ -177,6 +177,55 @@ pub(crate) fn write_yaml_file(path: &Path, yaml_file: &YamlFile) -> Result<()> {
     Ok(())
 }
 
+pub struct SecretLeak {
+    pub line: usize,
+    pub col: usize,
+    pub z_score: f64,
+}
+
+fn offset_to_linecol(source: &str, offset: rowan::TextSize) -> (usize, usize) {
+    let offset = usize::from(offset);
+    let text_before = &source[..offset];
+    let line = text_before.matches('\n').count() + 1;
+    let col = match text_before.rfind('\n') {
+        Some(pos) => offset - pos,
+        None => offset + 1,
+    };
+    (line, col)
+}
+
+pub fn check_comments_for_secrets(yaml_file: &YamlFile) -> Vec<SecretLeak> {
+    use rowan::NodeOrToken;
+    use yaml_edit::SyntaxKind;
+
+    let source = yaml_file.to_string();
+    let mut leaks = Vec::new();
+
+    for element in yaml_file.syntax().descendants_with_tokens() {
+        let NodeOrToken::Token(token) = element else { continue };
+        if token.kind() != SyntaxKind::COMMENT {
+            continue;
+        }
+        let offset = token.text_range().start();
+        let (line, col) = offset_to_linecol(&source, offset);
+        let comment_text = token.text();
+        let text_to_scan = comment_text
+            .strip_prefix("# ")
+            .or_else(|| comment_text.strip_prefix('#'))
+            .unwrap_or(comment_text)
+            .trim();
+        if text_to_scan.is_empty() {
+            continue;
+        }
+        for result in cleansh_entropy::scanner::Scanner::new(text_to_scan) {
+            if result.is_anomaly && result.token.len() >= 12 {
+                leaks.push(SecretLeak { line, col, z_score: result.z_score });
+            }
+        }
+    }
+    leaks
+}
+
 /// Create a new independent mutable cursor over the same green tree.
 /// yaml-edit's Clone shares cursor state (parent/index/offset), so
 /// mutating one clone affects all. This gives you a separate cursor

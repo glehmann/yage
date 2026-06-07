@@ -66,6 +66,10 @@ pub struct EncryptArgs {
     #[clap(short, long, default_value = "-", value_name = "FILE")]
     pub output: PathBuf,
 
+    /// Do not scan YAML comments for potential secrets
+    #[clap(long, default_value_t = false)]
+    pub no_comment_scan: bool,
+
     /// The YAML files to encrypt
     ///
     /// If the filename is -, the YAML file is read from the standard input.
@@ -83,6 +87,25 @@ pub fn encrypt(args: &EncryptArgs) -> Result<i32> {
     let recipients = load_recipients(&args.recipients, &args.recipient_files)?;
     for file in &args.files {
         let (yaml_file, doc, input_data) = read_yaml_file(file)?;
+        if !args.no_comment_scan {
+            let leaks = crate::check_comments_for_secrets(&yaml_file);
+            if !leaks.is_empty() {
+                let mut msg = String::new();
+                for leak in &leaks {
+                    if !msg.is_empty() {
+                        msg.push('\n');
+                    }
+                    msg.push_str(&format!(
+                        "  {}:{}:{}: high-entropy token detected (z-score: {})",
+                        file.to_string_lossy(),
+                        leak.line,
+                        leak.col,
+                        leak.z_score,
+                    ));
+                }
+                return Err(crate::error::YageError::SecretInComment);
+            }
+        }
         if !crate::check_recipients(&input_data) {
             warn!("{}: inconsistent recipients", file.to_string_lossy());
         }
