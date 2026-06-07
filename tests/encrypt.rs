@@ -398,3 +398,105 @@ fn encrypt_and_decrypt_preserves_top_level_comments() {
         "ROOT-level comment should survive decrypt"
     );
 }
+
+#[test]
+fn encrypt_decrypt_scalar_string_roundtrip() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+
+    let scalar_content = "hello\n";
+    let plain_path = tmp.child("plain.yaml");
+    write(&plain_path, scalar_content);
+    let encrypted_path = tmp.child("enc.yaml");
+
+    yage!("encrypt", "-R", &pub_path, &plain_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let decrypted_path = tmp.child("dec.yaml");
+    yage!("decrypt", "-K", &key_path, &encrypted_path, "-o", &decrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    assert_eq!(read(&decrypted_path), scalar_content);
+}
+
+#[test]
+fn encrypt_decrypt_scalar_number_roundtrip() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+
+    let scalar_content = "42\n";
+    let plain_path = tmp.child("plain.yaml");
+    write(&plain_path, scalar_content);
+    let encrypted_path = tmp.child("enc.yaml");
+
+    yage!("encrypt", "-R", &pub_path, &plain_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let decrypted_path = tmp.child("dec.yaml");
+    yage!("decrypt", "-K", &key_path, &encrypted_path, "-o", &decrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    assert_eq!(read(&decrypted_path), scalar_content);
+}
+
+#[test]
+fn encrypt_scalar_boolean_skipped() {
+    let tmp = temp_dir();
+    let (_, pub_path) = create_key(&tmp);
+
+    let scalar_content = "true\n";
+    let plain_path = tmp.child("plain.yaml");
+    write(&plain_path, scalar_content);
+    let encrypted_path = tmp.child("enc.yaml");
+
+    yage!("encrypt", "-R", &pub_path, &plain_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    // booleans are not encrypted, so the output should be identical
+    assert_eq!(read(&encrypted_path), scalar_content);
+}
+
+#[test]
+fn encrypt_scalar_null_skipped() {
+    let tmp = temp_dir();
+    let (_, pub_path) = create_key(&tmp);
+
+    let scalar_content = "null\n";
+    let plain_path = tmp.child("plain.yaml");
+    write(&plain_path, scalar_content);
+    let encrypted_path = tmp.child("enc.yaml");
+
+    yage!("encrypt", "-R", &pub_path, &plain_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    // null values are not encrypted
+    assert_eq!(read(&encrypted_path), scalar_content);
+}
+
+#[test]
+fn encrypt_scalar_quoted_string_encrypted() {
+    let tmp = temp_dir();
+    let (key_path, pub_path) = create_key(&tmp);
+
+    let scalar_content = "'hello world'\n";
+    let plain_path = tmp.child("plain.yaml");
+    write(&plain_path, scalar_content);
+    let encrypted_path = tmp.child("enc.yaml");
+
+    yage!("encrypt", "-R", &pub_path, &plain_path, "-o", &encrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    let decrypted_path = tmp.child("dec.yaml");
+    yage!("decrypt", "-K", &key_path, &encrypted_path, "-o", &decrypted_path)
+        .stdout(is_empty())
+        .stderr(is_empty());
+
+    assert_eq!(read(&decrypted_path), scalar_content);
+}
