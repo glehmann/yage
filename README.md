@@ -42,7 +42,56 @@ allows some interesting use cases:
 - The encrypted file can be modified by multiple persons and merged in a version control system
   without having to decrypt it first.
 - The encrypted file only contains the original keys and the encrypted values, so it can be used to
-  verify that it is usable for a specific task without having to decrypt it or remove the metadata.
+   verify that it is usable for a specific task without having to decrypt it or remove the metadata.
+
+## Features
+
+### YAML structure preservation
+
+Only values are encrypted — keys, structure, indentation, and comments remain untouched. The file
+stays readable and diffable even when encrypted.
+
+### No metadata overhead
+
+No MAC or extra metadata in encrypted files, enabling multi-party editing and clean git merges
+without decrypting first.
+
+### Incremental re-encryption
+
+Only modified values are re-encrypted. Unchanged encrypted values keep their prior ciphertext,
+producing minimal, reviewable git diffs.
+
+### Recipient reuse
+
+Re-encrypt without specifying recipients — `yage` reads them from the encrypted file's existing
+recipient headers.
+
+### Single binary, zero dependencies
+
+Built on age encryption with everything included. No plugins, no runtime, no external tools.
+
+### YAML comment preservation
+
+`yage` preserves YAML comments through encrypt/decrypt cycles. Both top-level comments (before the
+first YAML key) and inline comments (next to values) are kept intact when encrypting and decrypting.
+
+### Entropy-based secret detection in comments
+
+Since comments are not encrypted, `yage` automatically scans all YAML comments for high-entropy
+tokens (such as API keys, passwords, or tokens) using statistical entropy analysis. If a potential
+secret is found in a comment, a warning is emitted:
+
+```sh
+$ yage encrypt -R prod.pub secrets.yaml
+warn: secrets.yaml:2:1: high-entropy token detected (z-score: 100)
+```
+
+The detection runs on all subcommands (`encrypt`, `decrypt`, `re-encrypt`, `edit`, `check`).
+Use `-q` to reduce verbosity or `-qq` to suppress warnings entirely.
+
+This warning is a best-effort helper, not a substitute for dedicated secret detection tools
+like [gitleaks](https://github.com/gitleaks/gitleaks) or
+[trufflehog](https://github.com/trufflesecurity/trufflehog).
 
 ## Installation
 
@@ -254,8 +303,6 @@ the environment variables set to the decrypted values in a single command:
 $ yage run -K prod.key secrets.yaml env terraform apply
 ```
 
-## Pre-commit hook
-
 `yage` can be used in a [pre-commit hook](https://pre-commit.com/) to make sure that the secrets
 are always encrypted before committing them to the repository. Here is an example of a
 `.pre-commit-config.yaml` file that uses `yage` to detect the non-encrypted secrets in a YAML file
@@ -309,8 +356,7 @@ And because writing command line tools in rust is fun!
 
 ## Still to be done
 
-- [ ] Support comments. Sadly no YAML library that I know of supports comments, so this will be a
-      bit tricky.
+- [x] Support comments.
 - [ ] Support age plugins. `age` has a plugin system that could be used to add support for other
       encryption methods.
 - [ ] Support multi-document YAML files. This could help to make the CLI more consistent between in
