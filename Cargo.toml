@@ -29,7 +29,7 @@ fs-mistrust = "0.15.0"
 log = "0.4.28"
 ocli = "0.3.0"
 yaml-edit = "0.2"
-rowan = "0.16"
+rowan = "0.17"
 shlex = "2.0.1"
 strum = { version = "0.28.0", features = ["derive"] }
 substring = "1.4.5"
